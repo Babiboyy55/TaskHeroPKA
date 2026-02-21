@@ -1,0 +1,57 @@
+{
+    "hosting": {
+        "site": "taskhero-sutd",
+        "public": "build/web",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "rewrites": [
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ],
+        "headers": [
+            {
+                "source": "**",
+                "headers": [
+                    {
+                        "key": "Cross-Origin-Opener-Policy",
+                        "value": "same-origin-allow-popups"
+                    },
+                    {
+                        "key": "Cross-Origin-Resource-Policy",
+                        "value": "cross-origin"
+                    }
+                ]
+            },
+            {
+                "source": "**/*.@(js|css|wasm)",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "max-age=31536000"
+                    }
+                ]
+            }
+        ]
+    },
+    "firestore": {
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    },
+    "flutter": {
+        "platforms": {
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "health-is-wealth-b91b2",
+                    "configurations": {
+                        "web": "1:921926551735:web:f64e0b3116f8e46029e532"
+                    }
+                }
+            }
+        }
+    }
+}
