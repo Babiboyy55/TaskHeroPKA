@@ -81,14 +81,14 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
       isTranscribing = true;
     });
 
-    print('[PostTask] Stopping recording...');
+    print('[PostTask] Dừng ghi âm...');
     final audioBytes = await _audioRecorder.stopRecording();
-    print('[PostTask] Audio bytes received: ${audioBytes?.length ?? 0}');
+    print('[PostTask] Dữ liệu âm thanh nhận được: ${audioBytes?.length ?? 0} bytes');
 
     if (!mounted) return;
 
     if (audioBytes == null || audioBytes.isEmpty) {
-      print('[PostTask] ERROR: No audio data captured');
+      print('[PostTask] LỖI: Không có dữ liệu âm thanh');
       setState(() => isTranscribing = false);
       ShadToaster.of(context).show(
         const ShadToast.destructive(
@@ -99,21 +99,21 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
       return;
     }
 
-    print('[PostTask] Sending ${audioBytes.length} bytes to Deepgram...');
-    // Send to Deepgram for transcription
+    print('[PostTask] Gửi ${audioBytes.length} bytes đến Deepgram...');
+    // Gửi đến Deepgram để chuyển giọng nói thành văn bản
     final transcript = await DeepgramService.transcribe(audioBytes);
-    print('[PostTask] Transcript result: ${transcript ?? "null"}');
+    print('[PostTask] Kết quả chuyển đổi: ${transcript ?? "null"}');
 
     if (!mounted) return;
     setState(() => isTranscribing = false);
 
     if (transcript != null && transcript.isNotEmpty) {
-      print('[PostTask] Transcription successful: $transcript');
+      print('[PostTask] Chuyển đổi thành công: $transcript');
       _descController.text = transcript;
-      // Auto-send to OpenAI for AI formatting
+      // Tự động gửi sang AI để định dạng
       _processWithAI(transcript);
     } else {
-      print('[PostTask] ERROR: Transcription returned null or empty');
+      print('[PostTask] LỖI: Chuyển đổi trả về null hoặc rỗng');
       ShadToaster.of(context).show(
         const ShadToast.destructive(
           title: Text('Chuyển đổi thất bại'),
@@ -160,12 +160,12 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
   final FirestoreService _firestoreService = FirestoreService();
 
   Future<void> _postTask() async {
-    // Guard against double-tap / multiple submissions
+    // Chống nhấn đúp / gửi nhiều lần
     if (isPosting) return;
     setState(() => isPosting = true);
 
     try {
-      // Parse category from AI preview
+      // Phân tích danh mục từ kết quả AI
       final categoryStr = aiPreview['category']?.toString() ?? 'errands';
       TaskCategory category;
       try {
@@ -178,23 +178,23 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         category = TaskCategory.errands;
       }
 
-      // Parse urgency
+      // Phân tích mức độ khẩn cấp
       final urgencyStr = aiPreview['urgency']?.toString() ?? 'normal';
       final urgency = urgencyStr.toLowerCase() == 'urgent' 
           ? TaskUrgency.urgent 
           : TaskUrgency.normal;
 
-      // Parse compensation
+      // Phân tích tiền thưởng
       final comp = aiPreview['suggested_compensation'] is num
           ? (aiPreview['suggested_compensation'] as num).toDouble()
           : double.tryParse(aiPreview['suggested_compensation']?.toString() ?? '5') ?? 5.0;
 
-      // Parse estimated minutes
+      // Phân tích thời gian ước tính
       final estMinutes = aiPreview['estimated_minutes'] is num
           ? (aiPreview['estimated_minutes'] as num).toInt()
           : int.tryParse(aiPreview['estimated_minutes']?.toString() ?? '15') ?? 15;
 
-      // Parse locations
+      // Phân tích địa điểm
       final pickupData = aiPreview['pickup'];
       final deliveryData = aiPreview['delivery'];
       
@@ -210,9 +210,9 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         landmark: deliveryData?['landmark']?.toString() ?? '',
       );
 
-      // Create the task object
+      // Tạo đối tượng nhiệm vụ
       final task = HeroTask(
-        title: aiPreview['title']?.toString() ?? 'New Task',
+        title: aiPreview['title']?.toString() ?? 'Nhiệm vụ mới',
         description: aiPreview['description']?.toString() ?? _descController.text,
         category: category,
         compensation: comp,
@@ -221,16 +221,16 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         estimatedMinutes: estMinutes,
         pickup: pickup,
         delivery: delivery,
-        posterName: '', // Will be set by Firestore service
+        posterName: '', // Sẽ được cập nhật bởi Firestore
         posterRating: 5.0,
         posterAvatarUrl: '',
         createdAt: DateTime.now(),
       );
 
-      // Save to Firestore
-      print('[PostTask] Creating task in Firestore...');
+      // Lưu vào Firestore
+      print('[PostTask] Đang tạo nhiệm vụ trên Firestore...');
       await _firestoreService.createTask(task);
-      print('[PostTask] Task created successfully!');
+      print('[PostTask] Tạo nhiệm vụ thành công!');
 
       if (!mounted) return;
       
@@ -252,7 +252,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         _descController.clear();
       });
     } catch (e) {
-      print('[PostTask] Error creating task: $e');
+      print('[PostTask] Lỗi khi tạo nhiệm vụ: $e');
       if (!mounted) return;
       setState(() => isPosting = false);
       ShadToaster.of(context).show(
@@ -728,7 +728,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
               ],
             ),
           const SizedBox(height: 20),
-          // Payment section
+      // Phần thanh toán
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -811,7 +811,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                 leading: const Icon(LucideIcons.sparkles, size: 16),
                 child: const Text('AI Định dạng & Đăng'),
                 onPressed: () {
-                  // Enrich text input with manual form values so OpenAI has full context
+                  // Làm giàu dữ liệu đầu vào với các giá trị từ form thủ công
                   String enrichedInput = _descController.text;
                   if (selectedCategory != null) {
                     final catLabel = categories[selectedCategory] ?? selectedCategory;

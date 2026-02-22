@@ -5,42 +5,42 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirestoreService _firestoreService = FirestoreService();
 
-  // Get current user
+  // Lấy người dùng hiện tại
   User? get currentUser => _auth.currentUser;
 
-  // Auth state changes stream
+  // Luồng theo dõi thay đổi trạng thái xác thực
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Sign in with Google (Web-optimized)
+  // Đăng nhập bằng Google (tối ưu cho Web)
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      print('[Auth] Starting Google Sign-In with popup...');
-      print('[Auth] Current domain: ${Uri.base.host}');
+      print('[Auth] Bắt đầu đăng nhập Google bằng popup...');
+      print('[Auth] Domain hiện tại: ${Uri.base.host}');
       
-      // Create Google provider
+      // Tạo Google provider
       final GoogleAuthProvider googleProvider = GoogleAuthProvider();
       
-      // Optional: Add custom parameters
+      // Tùy chọn: Thêm tham số tuỳ chỉnh
       googleProvider.setCustomParameters({
-        'prompt': 'select_account',  // Always show account selection
+        'prompt': 'select_account',  // Luôn hiển thị chọn tài khoản
       });
 
-      print('[Auth] Calling signInWithPopup...');
+      print('[Auth] Đang gọi signInWithPopup...');
       
-      // Sign in with popup
+      // Đăng nhập bằng popup
       final UserCredential userCredential = 
           await _auth.signInWithPopup(googleProvider);
 
-      print('[Auth] Successfully signed in: ${userCredential.user?.email}');
-      print('[Auth] User ID: ${userCredential.user?.uid}');
+      print('[Auth] Đăng nhập thành công: ${userCredential.user?.email}');
+      print('[Auth] ID người dùng: ${userCredential.user?.uid}');
       
-      // Create or update user profile in Firestore
+      // Tạo hoặc cập nhật hồ sơ người dùng trên Firestore
       if (userCredential.user != null) {
         try {
           await _firestoreService.createOrUpdateUserProfile(userCredential.user!);
         } catch (e) {
-          print('[Auth] Warning: Failed to create/update profile, but sign-in succeeded. Error: $e');
-          // We continue anyway so the user can use the app
+          print('[Auth] Cảnh báo: Không tạo/cập nhật được hồ sơ, nhưng đăng nhập đã thành công. Lỗi: $e');
+          // Tiếp tục dù sao để người dùng có thể sử dụng ứng dụng
         }
       }
       
@@ -49,74 +49,74 @@ class AuthService {
       print('[Auth] FirebaseAuthException: ${e.code} - ${e.message}');
       
       if (e.code == 'popup-closed-by-user') {
-        print('[Auth] User closed the popup');
+        print('[Auth] Người dùng đã đóng popup');
       } else if (e.code == 'popup-blocked') {
-        print('[Auth] Popup was blocked by browser');
+        print('[Auth] Popup bị chặn bởi trình duyệt');
       }
       
       return null;
     } catch (e, stackTrace) {
-      print('[Auth] ERROR: $e');
+      print('[Auth] LỖI: $e');
       print('[Auth] Stack trace: $stackTrace');
       return null;
     }
   }
 
-  // ─── EMAIL/PASSWORD AUTHENTICATION ────────────────────────────────
+  // ─── XÁC THỰC EMAIL/MẬT KHẢU ────────────────────────────────
 
-  // Sign up with email and password
+  // Đăng ký bằng email và mật khẩu
   Future<UserCredential?> signUpWithEmail({
     required String email,
     required String password,
     required String displayName,
   }) async {
     try {
-      print('[Auth] Starting email/password registration...');
+      print('[Auth] Bắt đầu đăng ký bằng email/mật khẩu...');
       print('[Auth] Email: $email');
       
-      // Create user with email and password
+      // Tạo người dùng bằng email và mật khẩu
       final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      print('[Auth] User created successfully: ${userCredential.user?.uid}');
+      print('[Auth] Tạo người dùng thành công: ${userCredential.user?.uid}');
       
-      // Update display name
+      // Cập nhật tên hiển thị
       if (userCredential.user != null) {
         await userCredential.user!.updateDisplayName(displayName);
         await userCredential.user!.reload();
-        print('[Auth] Display name updated to: $displayName');
+        print('[Auth] Đã cập nhật tên hiển thị: $displayName');
         
-        // Create user profile in Firestore
+        // Tạo hồ sơ người dùng trên Firestore
         try {
           await _firestoreService.createOrUpdateUserProfile(
             _auth.currentUser!,
           );
-          print('[Auth] Firestore profile created');
+          print('[Auth] Đã tạo hồ sơ Firestore');
         } catch (e) {
-          print('[Auth] Warning: Failed to create Firestore profile: $e');
+          print('[Auth] Cảnh báo: Không tạo được hồ sơ Firestore: $e');
         }
       }
       
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      print('[Auth] Registration error: ${e.code} - ${e.message}');
-      rethrow; // Let the UI handle the error
+      print('[Auth] Lỗi đăng ký: ${e.code} - ${e.message}');
+      rethrow; // Để UI xử lý lỗi
     } catch (e, stackTrace) {
-      print('[Auth] Unexpected registration error: $e');
+      print('[Auth] Lỗi đăng ký không mong đợi: $e');
       print('[Auth] Stack trace: $stackTrace');
       rethrow;
     }
   }
 
-  // Sign in with email and password
+  // Đăng nhập bằng email và mật khẩu
   Future<UserCredential?> signInWithEmail({
     required String email,
     required String password,
   }) async {
     try {
-      print('[Auth] Starting email/password sign-in...');
+      print('[Auth] Bắt đầu đăng nhập bằng email/mật khẩu...');
       print('[Auth] Email: $email');
       
       final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -124,69 +124,69 @@ class AuthService {
         password: password,
       );
 
-      print('[Auth] Successfully signed in: ${userCredential.user?.email}');
-      print('[Auth] User ID: ${userCredential.user?.uid}');
+      print('[Auth] Đăng nhập thành công: ${userCredential.user?.email}');
+      print('[Auth] ID người dùng: ${userCredential.user?.uid}');
       
-      // Update user profile in Firestore (in case of any changes)
+      // Cập nhật hồ sơ người dùng trên Firestore (nếu có thay đổi)
       if (userCredential.user != null) {
         try {
           await _firestoreService.createOrUpdateUserProfile(userCredential.user!);
         } catch (e) {
-          print('[Auth] Warning: Failed to update profile: $e');
+          print('[Auth] Cảnh báo: Không cập nhật được hồ sơ: $e');
         }
       }
       
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      print('[Auth] Sign-in error: ${e.code} - ${e.message}');
-      rethrow; // Let the UI handle the error
+      print('[Auth] Lỗi đăng nhập: ${e.code} - ${e.message}');
+      rethrow; // Để UI xử lý lỗi
     } catch (e, stackTrace) {
-      print('[Auth] Unexpected sign-in error: $e');
+      print('[Auth] Lỗi đăng nhập không mong đợi: $e');
       print('[Auth] Stack trace: $stackTrace');
       rethrow;
     }
   }
 
-  // Send password reset email
+  // Gửi email đặt lại mật khẩu
   Future<void> resetPassword(String email) async {
     try {
-      print('[Auth] Sending password reset email to: $email');
+      print('[Auth] Đang gửi email đặt lại mật khẩu đến: $email');
       
       await _auth.sendPasswordResetEmail(email: email);
       
-      print('[Auth] Password reset email sent successfully');
+      print('[Auth] Đã gỬi email đặt lại mật khẩu thành công');
     } on FirebaseAuthException catch (e) {
-      print('[Auth] Password reset error: ${e.code} - ${e.message}');
+      print('[Auth] Lỗi đặt lại mật khẩu: ${e.code} - ${e.message}');
       rethrow;
     } catch (e, stackTrace) {
-      print('[Auth] Unexpected password reset error: $e');
+      print('[Auth] Lỗi đặt lại mật khẩu không mong đợi: $e');
       print('[Auth] Stack trace: $stackTrace');
       rethrow;
     }
   }
 
-  // Update user display name
+  // Cập nhật tên hiển thị của người dùng
   Future<void> updateDisplayName(String displayName) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
         await user.updateDisplayName(displayName);
         await user.reload();
-        print('[Auth] Display name updated to: $displayName');
+        print('[Auth] Đã cập nhật tên hiển thị: $displayName');
       }
     } catch (e) {
-      print('[Auth] Error updating display name: $e');
+      print('[Auth] Lỗi cập nhật tên hiển thị: $e');
       rethrow;
     }
   }
 
-  // Sign out
+  // Đăng xuất
   Future<void> signOut() async {
     try {
       await _auth.signOut();
-      print('[Auth] User signed out');
+      print('[Auth] Người dùng đã đăng xuất');
     } catch (e) {
-      print('[Auth] Sign out error: $e');
+      print('[Auth] Lỗi đăng xuất: $e');
     }
   }
 }

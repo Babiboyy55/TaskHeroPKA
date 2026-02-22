@@ -93,8 +93,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             description: Text('Chào mừng bạn đến với TaskHero. Đang chuyển đến trang chủ...'),
           ),
         );
-        // User is automatically logged in after registration
-        // StreamBuilder in main.dart will detect auth state change and navigate to AppShell
+        // Người dùng tự động đăng nhập sau khi đăng ký
+        // StreamBuilder trong main.dart sẽ phát hiện thay đổi trạng thái và chuyển đến AppShell
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -155,7 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
+                // Logo ứng dụng
                 Container(
                   width: 80,
                   height: 80,
@@ -193,7 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 const SizedBox(height: 48),
                 
-                // Registration form
+                // Form đăng ký
                 Container(
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
@@ -206,7 +206,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Name field
+                        // Trường họ và tên
                         Text(
                           'Họ và tên',
                           style: TextStyle(
@@ -231,7 +231,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Email field
+                        // Trường email
                         Text(
                           'Email',
                           style: TextStyle(
@@ -257,7 +257,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Password field
+                        // Trường mật khẩu
                         Text(
                           'Mật khẩu',
                           style: TextStyle(
@@ -292,7 +292,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Confirm password field
+                        // Trường xác nhận mật khẩu
                         Text(
                           'Xác nhận mật khẩu',
                           style: TextStyle(
@@ -327,7 +327,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Register button
+                        // Nút đăng ký
                         SizedBox(
                           width: double.infinity,
                           child: ShadButton(
@@ -348,7 +348,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Login link
+                        // Link đăng nhập
                         Center(
                           child: ShadButton.ghost(
                             onPressed: () {

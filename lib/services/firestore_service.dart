@@ -7,44 +7,44 @@ class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Get current user ID
+  // Lấy ID người dùng hiện tại
   String? get currentUserId => _auth.currentUser?.uid;
 
-  // ===== USER PROFILE METHODS =====
+  // ===== PHƯƠNG THỨC HỒ SƠ NGƯỜI DÙNG =====
 
-  /// Create or update user profile when they first sign in
+  /// Tạo hoặc cập nhật hồ sơ người dùng khi họ đăng nhập lần đầu
   Future<void> createOrUpdateUserProfile(User firebaseUser) async {
-    print('[Firestore] createOrUpdateUserProfile called for uid: ${firebaseUser.uid}');
+    print('[Firestore] createOrUpdateUserProfile được gọi cho uid: ${firebaseUser.uid}');
     
     try {
       final userDoc = _firestore.collection('users').doc(firebaseUser.uid);
       
-      print('[Firestore] Checking if user document exists...');
+      print('[Firestore] Đang kiểm tra tài liệu người dùng...');
       final docSnapshot = await userDoc.get();
-      print('[Firestore] Document exists: ${docSnapshot.exists}');
+      print('[Firestore] Tài liệu tồn tại: ${docSnapshot.exists}');
 
       if (!docSnapshot.exists) {
-        // New user - create profile
-        print('[Firestore] Creating new user profile...');
+        // Người dùng mới - tạo hồ sơ
+        print('[Firestore] Đang tạo hồ sơ người dùng mới...');
         final newProfile = UserProfile(
           uid: firebaseUser.uid,
           email: firebaseUser.email ?? '',
-          displayName: firebaseUser.displayName ?? 'New User',
+          displayName: firebaseUser.displayName ?? 'Người dùng mới',
           photoURL: firebaseUser.photoURL ?? '',
           createdAt: DateTime.now(),
           lastActive: DateTime.now(),
         );
         
         final profileData = newProfile.toFirestore();
-        print('[Firestore] Profile data to write: $profileData');
+        print('[Firestore] Dữ liệu hồ sơ cần ghi: $profileData');
         
         await userDoc.set(profileData);
-        print('[Firestore] ✅ Successfully created new user profile for ${firebaseUser.email}');
+        print('[Firestore] ✅ Đã tạo hồ sơ người dùng mới cho ${firebaseUser.email}');
       } else {
-        // Existing user - update last active
-        print('[Firestore] Updating existing user last active...');
+        // Người dùng cũ - cập nhật lần hoạt động cuối
+        print('[Firestore] Đang cập nhật lần hoạt động cuối...');
 
-        // Check if we need to reset thisMonthEarned (new month)
+        // Kiểm tra xem có cần reset thisMonthEarned (tháng mới) không
         final existingData = docSnapshot.data() as Map<String, dynamic>?;
         final lastActive = existingData?['lastActive'];
         final now = DateTime.now();
@@ -53,23 +53,23 @@ class FirestoreService {
         if (lastActive != null && lastActive is Timestamp) {
           final lastDate = lastActive.toDate();
           if (lastDate.month != now.month || lastDate.year != now.year) {
-            // New month — reset monthly earnings
+            // Tháng mới — reset thu nhập tháng này
             updates['thisMonthEarned'] = 0.0;
-            print('[Firestore] New month detected — resetting thisMonthEarned');
+            print('[Firestore] Phát hiện tháng mới — đặt lại thisMonthEarned');
           }
         }
 
         await userDoc.update(updates);
-        print('[Firestore] ✅ Updated last active for ${firebaseUser.email}');
+        print('[Firestore] ✅ Đã cập nhật lần hoạt động cuối cho ${firebaseUser.email}');
       }
     } catch (e, stackTrace) {
-      print('[Firestore] ❌ Error in createOrUpdateUserProfile: $e');
+      print('[Firestore] ❌ Lỗi trong createOrUpdateUserProfile: $e');
       print('[Firestore] Stack trace: $stackTrace');
       rethrow;
     }
   }
 
-  /// Get user profile by ID
+  /// Lấy hồ sơ người dùng theo ID
   Future<UserProfile?> getUserProfile([String? uid]) async {
     final userId = uid ?? currentUserId;
     if (userId == null) return null;
@@ -79,12 +79,12 @@ class FirestoreService {
       if (!doc.exists) return null;
       return UserProfile.fromFirestore(doc);
     } catch (e) {
-      print('[Firestore] Error getting user profile: $e');
+      print('[Firestore] Lỗi khi lấy hồ sơ người dùng: $e');
       return null;
     }
   }
 
-  /// Stream of current user's profile (real-time updates)
+  /// Luồng hồ sơ người dùng hiện tại (cập nhật thời gian thực)
   Stream<UserProfile?> getUserProfileStream() {
     if (currentUserId == null) return Stream.value(null);
     
@@ -94,29 +94,29 @@ class FirestoreService {
         .snapshots()
         .map((doc) => doc.exists ? UserProfile.fromFirestore(doc) : null)
         .handleError((e) {
-          print('[Firestore] Error in user profile stream: $e');
-          return null; // Return null on error so UI can handle it gracefully
+          print('[Firestore] Lỗi trong luồng hồ sơ người dùng: $e');
+          return null; // Trả về null khi lỗi để UI xử lý
         });
   }
 
-  /// Update user profile
+  /// Cập nhật hồ sơ người dùng
   Future<void> updateUserProfile(Map<String, dynamic> updates) async {
     if (currentUserId == null) return;
     try {
       await _firestore.collection('users').doc(currentUserId).update(updates);
     } catch (e) {
-      print('[Firestore] Error updating profile: $e');
+      print('[Firestore] Lỗi khi cập nhật hồ sơ: $e');
     }
   }
 
-  // ===== TASK METHODS =====
+  // ===== PHƯƠNG THỨC NHIỆM VỤ =====
 
-  /// Create a new task
+  /// Tạo nhiệm vụ mới
   Future<String> createTask(HeroTask task) async {
-    if (currentUserId == null) throw Exception('User not logged in');
+    if (currentUserId == null) throw Exception('Người dùng chưa đăng nhập');
 
     try {
-      // Read poster's actual rating from their profile
+      // Đọc xếp hạng thực tế của poster từ hồ sơ
       double posterRating = 5.0;
       try {
         final userDoc = await _firestore.collection('users').doc(currentUserId).get();
@@ -124,7 +124,7 @@ class FirestoreService {
           posterRating = (userDoc.data()?['rating'] as num?)?.toDouble() ?? 5.0;
         }
       } catch (_) {
-        // Fallback to 5.0 if we can't read the profile
+        // Dự phòng 5.0 nếu không đọc được hồ sơ
       }
 
       final taskData = {
@@ -146,7 +146,7 @@ class FirestoreService {
           'landmark': task.delivery.landmark,
         },
         'posterId': currentUserId,
-        'posterName': _auth.currentUser?.displayName ?? 'Unknown',
+        'posterName': _auth.currentUser?.displayName ?? 'Không rõ',
         'posterRating': posterRating,
         'posterAvatarUrl': _auth.currentUser?.photoURL ?? '',
         'heroId': null,
@@ -160,31 +160,31 @@ class FirestoreService {
 
       final docRef = await _firestore.collection('tasks').add(taskData);
       
-      // Increment user's tasks posted count (best-effort)
+      // Tăng số lượng nhiệm vụ đã đăng của người dùng (best-effort)
       try {
         await _firestore.collection('users').doc(currentUserId).update({
           'tasksPosted': FieldValue.increment(1),
         });
       } catch (_) {
-        // Non-critical — ignore
+        // Không quan trọng — bỏ qua
       }
 
-      print('[Firestore] Created new task: ${docRef.id}');
+      print('[Firestore] Đã tạo nhiệm vụ mới: ${docRef.id}');
       return docRef.id;
     } catch (e) {
       final msg = e.toString();
-      // Firestore Web SDK 11.9.1 bug: INTERNAL ASSERTION FAILED fires AFTER
-      // the write succeeds. Treat it as non-fatal so the user sees success.
+      // Lỗi SDK Firestore Web 11.9.1: INTERNAL ASSERTION FAILED xảy ra SAU
+      // khi ghi đã thành công. Xem như không nghiêm trọng để người dùng thấy thành công.
       if (msg.contains('INTERNAL ASSERTION FAILED') || msg.contains('Unexpected state')) {
-        print('[Firestore] Ignoring known SDK assertion (write already committed): $e');
+        print('[Firestore] Bỏ qua lỗi assertion SDK đã biết (ghi đã được commit): $e');
         return 'unknown';
       }
-      print('[Firestore] Error creating task: $e');
+      print('[Firestore] Lỗi khi tạo nhiệm vụ: $e');
       rethrow;
     }
   }
 
-  /// Get all open tasks (for browsing)
+  /// Lấy tất cả nhiệm vụ đang mở (để duyệt)
   Stream<List<HeroTask>> getOpenTasks() {
     return _firestore
         .collection('tasks')
@@ -195,12 +195,12 @@ class FirestoreService {
             .map((doc) => _taskFromFirestore(doc))
             .toList())
         .handleError((e) {
-          print('[Firestore] Error in open tasks stream: $e');
-          return <HeroTask>[]; // Return empty list on error
+          print('[Firestore] Lỗi trong luồng nhiệm vụ đang mở: $e');
+          return <HeroTask>[]; // Trả về danh sách rỗng khi lỗi
         });
   }
 
-  /// Stream a single task by ID (real-time updates)
+  /// Luồng một nhiệm vụ theo ID (cập nhật thời gian thực)
   Stream<HeroTask?> getTaskStream(String taskId) {
     return _firestore
         .collection('tasks')
@@ -208,12 +208,12 @@ class FirestoreService {
         .snapshots()
         .map((doc) => doc.exists ? _taskFromFirestore(doc) : null)
         .handleError((e) {
-          print('[Firestore] Error in task stream: $e');
+          print('[Firestore] Lỗi trong luồng nhiệm vụ: $e');
           return null;
         });
   }
 
-  /// Get ALL tasks (for browsing with filters)
+  /// Lấy TẤT CẢ nhiệm vụ (để duyệt với bộ lọc)
   Stream<List<HeroTask>> getAllTasks() {
     return _firestore
         .collection('tasks')
@@ -223,12 +223,12 @@ class FirestoreService {
             .map((doc) => _taskFromFirestore(doc))
             .toList())
         .handleError((e) {
-          print('[Firestore] Error in all tasks stream: $e');
+          print('[Firestore] Lỗi trong luồng tất cả nhiệm vụ: $e');
           return <HeroTask>[];
         });
   }
 
-  /// Get tasks posted by current user
+  /// Lấy nhiệm vụ đã đăng bởi người dùng hiện tại
   Stream<List<HeroTask>> getMyPostedTasks() {
     if (currentUserId == null) return Stream.value([]);
 
@@ -241,12 +241,12 @@ class FirestoreService {
             .map((doc) => _taskFromFirestore(doc))
             .toList())
         .handleError((e) {
-          print('[Firestore] Error in posted tasks stream: $e');
+          print('[Firestore] Lỗi trong luồng nhiệm vụ đã đăng: $e');
           return <HeroTask>[];
         });
   }
 
-  /// Get tasks accepted by current user
+  /// Lấy nhiệm vụ đã nhận bởi người dùng hiện tại
   Stream<List<HeroTask>> getMyAcceptedTasks() {
     if (currentUserId == null) return Stream.value([]);
 
@@ -259,12 +259,12 @@ class FirestoreService {
             .map((doc) => _taskFromFirestore(doc))
             .toList())
         .handleError((e) {
-          print('[Firestore] Error in accepted tasks stream: $e');
+          print('[Firestore] Lỗi trong luồng nhiệm vụ đã nhận: $e');
           return <HeroTask>[];
         });
   }
 
-  /// Get completed tasks for the last 7 days for the activity chart
+  /// Lấy nhiệm vụ hoàn thành trong 7 ngày gần nhất cho biểu đồ hoạt động
   Future<List<Map<String, dynamic>>> getWeeklyCompletedTasks() async {
     if (currentUserId == null) return [];
 
@@ -272,46 +272,46 @@ class FirestoreService {
       final now = DateTime.now();
       final sevenDaysAgo = now.subtract(const Duration(days: 7));
       
-      print('[Firestore] Fetching completed tasks for activity chart...');
+      print('[Firestore] Đang lấy nhiệm vụ hoàn thành cho biểu đồ hoạt động...');
       
-      // Simplify query: Fetch ALL completed tasks for user, filter locally.
-      // This avoids "Int64 accessor" errors with Timestamp queries on web.
+      // Đơn giản hóa query: Lấy TẤT CẢ nhiệm vụ hoàn thành của người dùng, lọc cục bộ.
+      // Tránh lỗi "Int64 accessor" với Timestamp queries trên web.
       final query = await _firestore
           .collection('tasks')
           .where('heroId', isEqualTo: currentUserId)
           .where('status', isEqualTo: 'completed')
           .get();
 
-      print('[Firestore] Found ${query.docs.length} completed tasks. Filtering...');
+      print('[Firestore] Tìm thấy ${query.docs.length} nhiệm vụ hoàn thành. Đang lọc...');
       
       final tasks = query.docs
           .map((doc) {
             try {
               return _taskFromFirestore(doc);
             } catch (e) {
-              print('[Firestore] Error mapping task ${doc.id}: $e');
+              print('[Firestore] Lỗi khi map nhiệm vụ ${doc.id}: $e');
               return null;
             }
           })
-          .whereType<HeroTask>() // Filter out nulls
+          .whereType<HeroTask>() // Lọc bỏ null
           .where((t) => t.completedAt != null && t.completedAt!.isAfter(sevenDaysAgo))
           .toList();
       
-      print('[Firestore] Filtered to ${tasks.length} tasks in last 7 days.');
+      print('[Firestore] Đã lọc còn ${tasks.length} nhiệm vụ trong 7 ngày gần nhất.');
 
-      // Group by day of week (Mon, Tue, etc.)
-      // ... (rest of the processing logic remains the same)
+      // Nhóm theo ngày trong tuần (T2, T3, ...)
+      // ... (phần logic xử lý còn lại giữ nguyên)
       final Map<String, int> dayCounts = {
         'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0
       };
       
-      // Helper to get day name
+      // Hàm lấy tên ngày
       String getDayName(int weekday) {
         const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         return days[weekday - 1];
       }
 
-      // Initialize with 0 for the last 7 days specifically in order
+      // Khởi tạo với 0 cho 7 ngày gần nhất theo thứ tự
       List<Map<String, dynamic>> result = [];
       for (int i = 6; i >= 0; i--) {
         final date = now.subtract(Duration(days: i));
@@ -319,11 +319,11 @@ class FirestoreService {
         result.add({'day': dayName, 'count': 0, 'date': date});
       }
 
-      // Populate counts
+      // Điền số lượng
       for (var task in tasks) {
         if (task.completedAt != null) {
           final dayName = getDayName(task.completedAt!.weekday);
-          // Find the matching day in our result list to ensure we count correctly for the specific date window
+          // Tìm ngày khớp trong danh sách để đếm đúng cho cửa sổ ngày cụ thể
           for (var dayData in result) {
              final dayDate = dayData['date'] as DateTime;
              if (dayDate.day == task.completedAt!.day && dayDate.month == task.completedAt!.month) {
@@ -335,122 +335,122 @@ class FirestoreService {
       
       return result;
     } catch (e, stack) {
-      print('[Firestore] Error fetching weekly tasks: $e');
+      print('[Firestore] Lỗi khi lấy nhiệm vụ tuần: $e');
       print('[Firestore] Stack trace: $stack');
-      return []; // Return empty list on error
+      return []; // Trả về danh sách rỗng khi lỗi
     }
   }
 
-  /// Accept a task (uses transaction to prevent race conditions)
+  /// Nhận nhiệm vụ (dùng transaction để tránh race condition)
   Future<void> acceptTask(String taskId) async {
-    if (currentUserId == null) throw Exception('User not logged in');
+    if (currentUserId == null) throw Exception('Người dùng chưa đăng nhập');
 
     final taskRef = _firestore.collection('tasks').doc(taskId);
 
     await _firestore.runTransaction((transaction) async {
       final taskSnapshot = await transaction.get(taskRef);
       final taskData = taskSnapshot.data();
-      if (taskData == null) throw Exception('Task not found');
+      if (taskData == null) throw Exception('Không tìm thấy nhiệm vụ');
 
       if (taskData['posterId'] == currentUserId) {
-        throw Exception('You cannot accept your own task');
+        throw Exception('Bạn không thể nhận nhiệm vụ của chính mình');
       }
 
       if (taskData['status'] != 'open') {
-        throw Exception('This task is no longer available');
+        throw Exception('Nhiệm vụ này không còn khả dụng');
       }
 
       transaction.update(taskRef, {
         'status': TaskStatus.accepted.name,
         'heroId': currentUserId,
-        'heroName': _auth.currentUser?.displayName ?? 'Unknown',
+        'heroName': _auth.currentUser?.displayName ?? 'Không rõ',
         'acceptedAt': Timestamp.now(),
         'pickedUp': false,
         'delivered': false,
       });
     });
 
-    print('[Firestore] Task $taskId accepted by $currentUserId');
+    print('[Firestore] Nhiệm vụ $taskId đã được nhận bởi $currentUserId');
   }
 
-  /// Update task progress (pickedUp, delivered steps)
+  /// Cập nhật tiến độ nhiệm vụ (bước lấy hàng, giao hàng)
   Future<void> updateTaskProgress(String taskId, Map<String, dynamic> progress) async {
-    if (currentUserId == null) throw Exception('User not logged in');
+    if (currentUserId == null) throw Exception('Người dùng chưa đăng nhập');
     await _firestore.collection('tasks').doc(taskId).update(progress);
-    print('[Firestore] Task $taskId progress updated: $progress');
+    print('[Firestore] Tiến độ nhiệm vụ $taskId đã cập nhật: $progress');
   }
 
-  /// Cancel a task (only the poster can cancel an open task)
+  /// Hủy nhiệm vụ (chỉ poster mới có thể hủy nhiệm vụ đang mở)
   Future<void> cancelTask(String taskId) async {
-    if (currentUserId == null) throw Exception('User not logged in');
+    if (currentUserId == null) throw Exception('Người dùng chưa đăng nhập');
 
     final taskDoc = await _firestore.collection('tasks').doc(taskId).get();
     final taskData = taskDoc.data();
     if (taskData == null) return;
 
-    // Verify current user is the poster
+    // Xác minh người dùng hiện tại là poster
     if (taskData['posterId'] != currentUserId) {
-      throw Exception('Only the task poster can cancel this task');
+      throw Exception('Chỉ người đăng nhiệm vụ mới có thể hủy');
     }
 
-    // Only allow cancelling open tasks
+    // Chỉ cho phép hủy nhiệm vụ đang mở
     if (taskData['status'] != 'open') {
-      throw Exception('Can only cancel tasks that are still open');
+      throw Exception('Chỉ có thể hủy nhiệm vụ đang mở');
     }
 
     await _firestore.collection('tasks').doc(taskId).update({
       'status': TaskStatus.cancelled.name,
     });
 
-    // Decrement the poster's tasksPosted count
+    // Giảm số lượng nhiệm vụ đã đăng của poster
     await _firestore.collection('users').doc(currentUserId).update({
       'tasksPosted': FieldValue.increment(-1),
     });
 
-    print('[Firestore] Task $taskId cancelled by poster $currentUserId');
+    print('[Firestore] Nhiệm vụ $taskId đã bị hủy bởi poster $currentUserId');
   }
 
-  /// Complete a task
+  /// Hoàn thành nhiệm vụ
   Future<void> completeTask(String taskId) async {
-    if (currentUserId == null) throw Exception('User not logged in');
+    if (currentUserId == null) throw Exception('Người dùng chưa đăng nhập');
 
     final taskDoc = await _firestore.collection('tasks').doc(taskId).get();
     final taskData = taskDoc.data();
-    if (taskData == null) throw Exception('Task not found');
+    if (taskData == null) throw Exception('Không tìm thấy nhiệm vụ');
 
-    // Verify the current user is involved in this task (either hero or poster)
+    // Xác minh người dùng hiện tại có liên quan đến nhiệm vụ (hero hoặc poster)
     final heroId = taskData['heroId'];
     final posterId = taskData['posterId'];
-    if (heroId == null) throw Exception('No hero assigned to this task');
+    if (heroId == null) throw Exception('Chưa có Hero nào nhận nhiệm vụ này');
 
     if (currentUserId != heroId && currentUserId != posterId) {
-      throw Exception('You are not authorized to complete this task');
+      throw Exception('Bạn không có quyền hoàn thành nhiệm vụ này');
     }
 
     if (taskData['status'] == TaskStatus.completed.name) {
-      throw Exception('This task is already completed');
+      throw Exception('Nhiệm vụ này đã hoàn thành rồi');
     }
 
     final compensation = (taskData['compensation'] as num).toDouble();
-    final heroEarnings = compensation * 0.95; // 5% platform fee
+    final heroEarnings = compensation * 0.95; // Phí nền tảng 5%
 
-    // Update task status
+    // Cập nhật trạng thái nhiệm vụ
     await _firestore.collection('tasks').doc(taskId).update({
       'status': TaskStatus.completed.name,
       'completedAt': Timestamp.now(),
     });
 
-    // Update hero's earnings and completed count (use heroId, not currentUserId)
+    // Cập nhật thu nhập và số nhiệm vụ hoàn thành của hero (dùng heroId, không phải currentUserId)
     await _firestore.collection('users').doc(heroId).update({
       'totalEarned': FieldValue.increment(heroEarnings),
       'thisMonthEarned': FieldValue.increment(heroEarnings),
       'tasksCompleted': FieldValue.increment(1),
     });
 
-    print('[Firestore] Task $taskId completed. Hero $heroId earned \$$heroEarnings');
+    print('[Firestore] Nhiệm vụ $taskId hoàn thành. Hero $heroId kiếm được ${heroEarnings.toStringAsFixed(0)}đ');
   }
 
-  /// Helper to convert Firestore doc to HeroTask
+  /// Hàm chuyển đổi Firestore doc thành HeroTask
   HeroTask _taskFromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     
@@ -483,7 +483,7 @@ class FirestoreService {
         landmark: (data['delivery'] is Map) ? (data['delivery']['landmark'] ?? '') : '',
       ),
       posterId: data['posterId'],
-      posterName: data['posterName'] ?? 'Unknown',
+      posterName: data['posterName'] ?? 'Không rõ',
       posterRating: (data['posterRating'] as num?)?.toDouble() ?? 5.0,
       posterAvatarUrl: data['posterAvatarUrl'] ?? '',
       heroId: data['heroId'],
@@ -493,7 +493,7 @@ class FirestoreService {
 
       createdAt: (data['createdAt'] is Timestamp)
           ? (data['createdAt'] as Timestamp).toDate()
-          : DateTime.now(), // Fallback to avoid crash
+          : DateTime.now(), // Dự phòng để tránh crash
       acceptedAt: data['acceptedAt'] != null && data['acceptedAt'] is Timestamp
           ? (data['acceptedAt'] as Timestamp).toDate()
           : null,

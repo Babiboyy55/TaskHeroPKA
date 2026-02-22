@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../models/user_profile.dart';
 import '../models/task_model.dart';
 import '../theme/app_colors.dart';
+import '../utils/currency_format.dart';
 
 class ProfileScreen extends StatefulWidget {
   final void Function(HeroTask)? onTaskTap;
@@ -37,11 +38,11 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     });
 
     try {
-      print('[Profile] Attempting to create profile for ${_authService.currentUser?.uid}');
+      print('[Profile] Đang tạo hồ sơ cho ${_authService.currentUser?.uid}');
       await _firestoreService.createOrUpdateUserProfile(_authService.currentUser!);
-      print('[Profile] Profile creation requested successfully');
+      print('[Profile] Tạo hồ sơ thành công');
     } catch (e) {
-      print('[Profile] Profile creation failed: $e');
+      print('[Profile] Tạo hồ sơ thất bại: $e');
       if (mounted) {
         setState(() {
           _creationError = e.toString();
@@ -73,7 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       body: StreamBuilder<UserProfile?>(
         stream: _firestoreService.getUserProfileStream(),
         builder: (context, snapshot) {
-          // Show loading state
+          // Hiển thị trạng thái đang tải
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: Column(
@@ -87,9 +88,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             );
           }
 
-          // Show error state
+          // Hiển thị trạng thái lỗi
           if (snapshot.hasError) {
-            print('[Profile] Error loading profile: ${snapshot.error}');
+            print('[Profile] Lỗi tải hồ sơ: ${snapshot.error}');
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -106,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   const SizedBox(height: 16),
                   ShadButton(
                     onPressed: () {
-                      setState(() {}); // Trigger rebuild to retry
+                      setState(() {}); // Kích hoạt rebuild để thử lại
                     },
                     child: const Text('Thử lại'),
                   ),
@@ -118,9 +119,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           final userProfile = snapshot.data;
           
           if (userProfile == null) {
-            // Check if we should auto-create (only once per session to avoid loops)
+            // Kiểm tra nếu cần tự động tạo hồ sơ (chỉ 1 lần/phiên dể tránh vòng lặp)
             if (_authService.currentUser != null && !_isCreatingProfile) {
-               // We verify if we haven't already tried recently
+               // Xác minh nếu chưa thử gần đây
                _isCreatingProfile = true;
                WidgetsBinding.instance.addPostFrameCallback((_) {
                  _createProfile();
@@ -150,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   ),
                   const SizedBox(height: 8),
                   ShadButton.outline(
-                    onPressed: () => _authService.signOut(), // Escape hatch
+                    onPressed: () => _authService.signOut(), // Thoát khẩn cấp
                     child: const Text('Đăng xuất & Thử lại'),
                   ),
                 ],
@@ -158,14 +159,14 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             );
           }
 
-          print('[Profile] Loaded profile for: ${userProfile.displayName}');
+          print('[Profile] Đã tải hồ sơ: ${userProfile.displayName}');
 
           return SingleChildScrollView(
             padding: EdgeInsets.all(isMobile ? 16 : 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
+                // Tiêu đề trang
                 Text(
                   'Hồ sơ',
                   style: TextStyle(
@@ -184,118 +185,133 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 ),
                 const SizedBox(height: 24),
 
-                // User Info Card
+                // Thẻ thông tin người dùng
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.card,
                     border: Border.all(color: theme.colorScheme.border),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Avatar
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: userProfile.photoURL.isNotEmpty
-                            ? NetworkImage(userProfile.photoURL)
-                            : null,
-                        backgroundColor: AppColors.orange50,
-                        child: userProfile.photoURL.isEmpty
-                            ? Text(
-                                userProfile.initials,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.orange600,
-                                ),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 20),
-                      
-                      // User Info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userProfile.displayName,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: theme.colorScheme.foreground,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            // Editable Pillar/Year row
-                            GestureDetector(
-                              onTap: () => _showEditPillarYearDialog(context, userProfile),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    userProfile.pillarYear,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: theme.colorScheme.mutedForeground,
+                      // Hàng trên: Avatar + Thông tin + Nút đăng xuất
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Avatar
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundImage: userProfile.photoURL.isNotEmpty
+                                ? NetworkImage(userProfile.photoURL)
+                                : null,
+                            backgroundColor: AppColors.orange50,
+                            child: userProfile.photoURL.isEmpty
+                                ? Text(
+                                    userProfile.initials,
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.orange600,
                                     ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    LucideIcons.pencil,
-                                    size: 14,
-                                    color: AppColors.orange500,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 16),
+
+                          // Tên + Pillar
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(LucideIcons.star, size: 16, color: AppColors.orange500),
-                                const SizedBox(width: 4),
                                 Text(
-                                  '${userProfile.rating.toStringAsFixed(1)} (${userProfile.totalReviews})',
+                                  userProfile.displayName,
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
                                     color: theme.colorScheme.foreground,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(width: 16),
-                                Icon(LucideIcons.check, size: 16, color: AppColors.green500),
-                                const SizedBox(width: 4),
-                                Text(
-                                  (userProfile.tasksCompleted + userProfile.tasksPosted) > 0
-                                      ? '${((userProfile.tasksCompleted / (userProfile.tasksCompleted + userProfile.tasksPosted)) * 100).toInt()}%'
-                                      : '0%',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.foreground,
+                                const SizedBox(height: 4),
+                                GestureDetector(
+                                  onTap: () => _showEditPillarYearDialog(context, userProfile),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          userProfile.pillarYear,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: theme.colorScheme.mutedForeground,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Icon(
+                                        LucideIcons.pencil,
+                                        size: 13,
+                                        color: AppColors.orange500,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+
+                          // Nút đăng xuất
+                          const SizedBox(width: 8),
+                          ShadButton.destructive(
+                            onPressed: () async {
+                              await _authService.signOut();
+                            },
+                            size: ShadButtonSize.sm,
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(LucideIcons.logOut, size: 14, color: Colors.white),
+                                SizedBox(width: 6),
+                                Text('Đăng xuất', style: TextStyle(color: Colors.white, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      
-                      // Sign Out Button - RED for contrast
-                      ShadButton.destructive(
-                        onPressed: () async {
-                          await _authService.signOut();
-                        },
-                        size: ShadButtonSize.sm,
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(LucideIcons.logOut, size: 16, color: Colors.white),
-                            SizedBox(width: 8),
-                            Text('Đăng xuất', style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
+
+                      const SizedBox(height: 16),
+
+                      // Hàng dưới: Rating + Tỉ lệ hoàn thành
+                      Row(
+                        children: [
+                          const Icon(LucideIcons.star, size: 15, color: AppColors.orange500),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${userProfile.rating.toStringAsFixed(1)} (${userProfile.totalReviews})',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.foreground,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Icon(LucideIcons.check, size: 15, color: AppColors.green500),
+                          const SizedBox(width: 4),
+                          Text(
+                            (userProfile.tasksCompleted + userProfile.tasksPosted) > 0
+                                ? '${((userProfile.tasksCompleted / (userProfile.tasksCompleted + userProfile.tasksPosted)) * 100).toInt()}% hoàn thành'
+                                : '0% hoàn thành',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.foreground,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -303,7 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
                 const SizedBox(height: 24),
 
-                // Stats Grid
+                // Lưới thống kê
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -315,7 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     _buildStatCard(
                       theme,
                       'Tổng thu nhập',
-                      '\$${userProfile.totalEarned.toStringAsFixed(0)}',
+                      formatVND(userProfile.totalEarned),
                       userProfile.totalEarned > 0 ? 'tổng thu nhập' : 'chưa có thu nhập',
                       LucideIcons.dollarSign,
                       AppColors.green500,
@@ -324,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     _buildStatCard(
                       theme,
                       'Tháng này',
-                      '\$${userProfile.thisMonthEarned.toStringAsFixed(0)}',
+                      formatVND(userProfile.thisMonthEarned),
                       userProfile.thisMonthEarned > 0 ? 'tháng này' : 'chưa có thu nhập',
                       LucideIcons.trendingUp,
                       AppColors.orange500,
@@ -332,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     ),
                     _buildStatCard(
                       theme,
-                      'Nhiệm vụ đã hoàn thành',
+                      'Nhiệm vụ đã làm',
                       '${userProfile.tasksCompleted}',
                       userProfile.tasksCompleted > 0 ? 'nhiệm vụ hoàn thành' : 'chưa có nhiệm vụ',
                       LucideIcons.check,
@@ -353,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
                 const SizedBox(height: 32),
 
-                // My Tasks Tabs
+                // Tab nhiệm vụ của tôi
                 Container(
                   decoration: BoxDecoration(
                     color: theme.colorScheme.card,
@@ -390,7 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
-  // Dialog to edit pillar and year
+  // Hộp thoại chỉnh sửa pillar và năm học
   void _showEditPillarYearDialog(BuildContext context, UserProfile userProfile) {
     String selectedPillar = userProfile.pillar;
     int selectedYear = userProfile.year;
@@ -593,7 +609,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                       ),
                     ),
                     Text(
-                      '\$${task.compensation.toStringAsFixed(2)}',
+                      formatVND(task.compensation),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,

@@ -32,12 +32,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final theme = ShadTheme.of(context);
     final taskId = widget.task.id;
 
-    // If no task ID, fall back to static data (shouldn't happen with real tasks)
+    // Nếu không có ID nhiệm vụ, dùng dữ liệu tĩnh (không nên xảy ra với nhiệm vụ thực)
     if (taskId == null) {
       return _buildContent(theme, widget.task);
     }
 
-    // Live-updating stream from Firestore
+    // Luồng cập nhật trực tiếp từ Firestore
     return StreamBuilder<HeroTask?>(
       stream: _firestoreService.getTaskStream(taskId),
       initialData: widget.task,
@@ -57,9 +57,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final isHero = task.heroId != null && task.heroId == currentUid;
     final isOpenAndPoster = isPoster && task.status == TaskStatus.open;
     final showAccept = task.status == TaskStatus.open && !isPoster;
-    // Poster confirmation = task is completed (poster released payment)
+    // Poster xác nhận = nhiệm vụ đã hoàn thành (poster đã thanh toán)
     final posterConfirmed = isCompleted;
-    // Show payment to POSTER when hero has delivered but poster hasn't paid yet
+    // Hiển thị thanh toán cho POSTER khi hero đã giao nhưng poster chưa thanh toán
     final showPaymentForPoster = isPoster && task.delivered && !isCompleted;
 
     return SingleChildScrollView(
@@ -67,7 +67,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back button
+          // Nút quay lại
           GestureDetector(
             onTap: widget.onBack,
             child: Row(
@@ -426,7 +426,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               ),
             ),
           ],
-          // Hero sees "waiting for poster" message after delivering but before completion
+          // Hero thấy thông báo "đang chờ poster" sau khi giao nhưng trước khi hoàn thành
           if (task.delivered && !posterConfirmed && isHero) ...[
             const SizedBox(height: 12),
             Container(
@@ -859,7 +859,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   color: theme.colorScheme.foreground)),
           const SizedBox(height: 4),
           Text(
-              'Kiếm \$${task.heroEarnings.toStringAsFixed(2)} cho nhiệm vụ này.',
+              'Kiếm ${formatVND(task.heroEarnings)} cho nhiệm vụ này.',
               style: TextStyle(
                   fontSize: 13,
                   color: theme.colorScheme.mutedForeground)),
@@ -885,7 +885,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             'Đi đến ${task.pickup.full} để lấy hàng'),
                       ),
                     );
-                    // Go back since the task state changed
+                    // Quay lại vì trạng thái nhiệm vụ đã thay đổi
                     widget.onBack();
                   }
                 } catch (e) {
@@ -998,7 +998,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('Connected',
+                child: const Text('Kết nối',
                     style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
@@ -1019,13 +1019,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   mainAxisAlignment:
                       MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Payment Amount',
+                    Text('Số tiền thanh toán',
                         style: TextStyle(
                             fontSize: 13,
                             color: theme
                                 .colorScheme.mutedForeground)),
-                    Text(
-                        '\$${task.compensation.toStringAsFixed(2)}',
+                    Text(formatVND(task.compensation),
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -1037,7 +1036,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   mainAxisAlignment:
                       MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Paying to',
+                    Text('Thanh toán cho',
                         style: TextStyle(
                             fontSize: 13,
                             color: theme
@@ -1053,7 +1052,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   mainAxisAlignment:
                       MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Payment Method',
+                    Text('Phương thức thanh toán',
                         style: TextStyle(
                             fontSize: 13,
                             color: theme
@@ -1073,17 +1072,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             child: GestureDetector(
               onTap: () async {
                 try {
-                  // Simulate payment processing
+                  // Mô phỏng xử lý thanh toán
                   ShadToaster.of(context).show(
                     const ShadToast(
-                      title: Text('Processing Payment...'),
-                      description: Text('Contacting payment gateway'),
+                      title: Text('Đang xử lý thanh toán...'),
+                      description: Text('Đang kết nối cổng thanh toán'),
                     ),
                   );
                   
                   await Future.delayed(const Duration(seconds: 2));
                   
-                  // Complete the task in Firestore (releases escrow)
+                  // Hoàn thành nhiệm vụ trên Firestore (giải phóng ky quỹ)
                   if (task.id != null) {
                     await _firestoreService.completeTask(task.id!);
                   }
@@ -1091,19 +1090,19 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   if (context.mounted) {
                     ShadToaster.of(context).show(
                       const ShadToast(
-                        title: Text('Payment Processed!'),
-                        description: Text('Funds released to Hero. Task Completed!'),
+                        title: Text('Thanh toán thành công!'),
+                        description: Text('Tiền đã chuyển cho Hero. Nhiệm vụ hoàn thành!'),
                       ),
                     );
                     
-                    // Wait a bit and go back
+                    // Chờ một chút rồi quay lại
                     Future.delayed(const Duration(seconds: 2), widget.onBack);
                   }
                 } catch (e) {
                   if (context.mounted) {
                     ShadToaster.of(context).show(
                       ShadToast(
-                        title: const Text('Payment Failed'),
+                        title: const Text('Thanh toán thất bại'),
                         description: Text(e.toString()),
                         backgroundColor: Colors.red.withValues(alpha: 0.1),
                       ),
@@ -1124,7 +1123,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         size: 18, color: Colors.white),
                     SizedBox(width: 8),
                     Text(
-                      'Release Payment via Google Pay',
+                      'Giải phóng thanh toán qua Google Pay',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -1139,7 +1138,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              'Confirm delivery and release payment to the Hero.',
+              'Xác nhận giao hàng và giải phóng thanh toán cho Hero.',
               style: TextStyle(
                   fontSize: 11,
                   color: theme.colorScheme.mutedForeground),

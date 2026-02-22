@@ -143,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       
-      String errorMessage = 'Authentication error: ${e.code}';
+      String errorMessage = 'Lỗi xác thực: ${e.code}';
       
       switch (e.code) {
         case 'popup-closed-by-user':
@@ -199,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
+                // Logo ứng dụng
                 Container(
                   width: 80,
                   height: 80,
@@ -237,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 
                 const SizedBox(height: 48),
                 
-                // Login interface with tabs
+                // Giao diện đăng nhập với tab
                 Container(
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
@@ -247,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   ),
                   child: Column(
                     children: [
-                      // Tab Bar
+                      // Thanh tab
                       Container(
                         decoration: BoxDecoration(
                           border: Border(
@@ -268,19 +268,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       
                       const SizedBox(height: 24),
                       
-                      // Tab Views
+                      // Nội dung tab
                       SizedBox(
                         height: 350,
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            // Email/Password Tab
+                            // Tab Email/Mật khẩu
                             Form(
                               key: _formKey,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  // Email field
+                                  // Trường email
                                   ShadInput(
                                     controller: _emailController,
                                     placeholder: const Text('email@example.com'),
@@ -297,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                                   const SizedBox(height: 16),
 
-                                  // Password field
+                                  // Trường mật khẩu
                                   ShadInput(
                                     controller: _passwordController,
                                     placeholder: const Text('Nhập mật khẩu'),
@@ -315,7 +315,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                                   const SizedBox(height: 8),
 
-                                  // Forgot password link
+                                  // Link quên mật khẩu
                                   Align(
                                     alignment: Alignment.centerRight,
                                     child: ShadButton.ghost(
@@ -339,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                                   const SizedBox(height: 16),
 
-                                  // Login button
+                                  // Nút đăng nhập
                                   SizedBox(
                                     width: double.infinity,
                                     child: ShadButton(
@@ -360,7 +360,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                                   const SizedBox(height: 16),
 
-                                  // Register link
+                                  // Link đăng ký
                                   Center(
                                     child: ShadButton.ghost(
                                       onPressed: () {

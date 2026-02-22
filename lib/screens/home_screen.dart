@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // ... (rest of the class)
+  // ... (phần còn lại của class)
 
   bool get _isMobile => MediaQuery.of(context).size.width < 768;
 
@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, openTasksSnapshot) {
                 final openTasks = openTasksSnapshot.data ?? [];
                 
-                // Filter logic
+                // Lọc theo danh mục
                 final filteredTasks = selectedFilter == 'all' 
                     ? openTasks 
                     : openTasks.where((t) => t.category.name == selectedFilter).toList();
@@ -90,9 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 24),
                       _buildStatCards(ShadTheme.of(context), userProfile),
                       const SizedBox(height: 28),
-                      // We can add an activity chart here if we have historical data
-                      // For now, we'll hide it or keep it static? 
-                      // Let's keep the static animation for visual flair but maybe standard data
+                      // Có thể thêm biểu đồ hoạt động nếu có dữ liệu lịch sử
                       _buildActivityChart(ShadTheme.of(context)).animate().fadeIn(duration: 500.ms, delay: 400.ms),
                       const SizedBox(height: 28),
                       if (myMissions.isNotEmpty) ...[
@@ -160,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
       StatCard(icon: LucideIcons.circleCheck, title: 'Đã hoàn thành', value: '${profile?.tasksCompleted ?? 0}', subtitle: 'từ tháng trước', badge: '+0%'),
       StatCard(icon: LucideIcons.star, title: 'Đánh giá', value: '${profile?.rating.toStringAsFixed(1) ?? "5.0"}', subtitle: '${profile?.totalReviews ?? 0} đánh giá', badge: '+0'),
     ];
-    // ... (keep layout builder)
+    // Dùng LayoutBuilder để chia đều các thẻ thống kê
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = constraints.maxWidth < 600 ? 2 : 4;
@@ -192,9 +190,9 @@ class _HomeScreenState extends State<HomeScreen> {
         final totalTasks = data.fold<int>(0, (sum, item) => sum + (item['count'] as int));
         final weekData = data.map((e) => (e['day'] as String, e['count'] as int)).toList();
         
-        // Handle case where all counts are 0
+        // Xử lý trường hợp tất cả giá trị đều bằng 0
         final maxCount = weekData.map((e) => e.$2).fold(0, (a, b) => a > b ? a : b);
-        final maxVal = maxCount == 0 ? 5 : maxCount; // Default scale if empty
+        final maxVal = maxCount == 0 ? 5 : maxCount; // Tỷ lệ mặc định nếu chưa có dữ liệu
 
         return Container(
           padding: EdgeInsets.all(_isMobile ? 16 : 20),
@@ -366,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ])),
           ])),
           Expanded(child: ShadBadge.secondary(child: Text(task.category.label))),
-          Expanded(child: Text('\$${task.compensation.toStringAsFixed(2)}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.colorScheme.foreground))),
+          Expanded(child: Text(formatVND(task.compensation), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.colorScheme.foreground))),
           Expanded(child: _statusBadge(task.status)),
           SizedBox(width: 80, child: task.status == TaskStatus.open ? ShadButton(size: ShadButtonSize.sm, child: const Text('Nhận'), onPressed: () => _acceptTask(task)) : const SizedBox.shrink()),
         ]),
