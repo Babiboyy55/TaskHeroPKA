@@ -248,7 +248,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                             fontSize: 13,
                                             color: theme.colorScheme.mutedForeground,
                                           ),
-                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                       const SizedBox(width: 6),
@@ -410,9 +409,19 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   void _showEditPillarYearDialog(BuildContext context, UserProfile userProfile) {
     String selectedPillar = userProfile.pillar;
     int selectedYear = userProfile.year;
-    
-    final pillars = ['ASD', 'CSD', 'DAI', 'ESD', 'EPD', 'ISTD', 'Freshmore'];
+    // final pillars = ['ASD', 'CSD', 'DAI', 'ESD', 'EPD', 'ISTD', 'Freshmore'];
+    final pillars = [
+      'ICT-VJ',
+      'EEE-AI', 'ICT1', 'ICT-AI', 'ICT-TN',
+      'MEM1', 'MEM2', 'MSE1', 'MSE-AI',
+      'VEE1', 'VEE2', 'FSP1', 'FBE1',
+    ];
     final years = [1, 2, 3, 4, 5];
+    ///  ý tôi là phần hiển thị ở đây và chỉnh pillar thành Mã Nghành rồi xuống dòng years thành năm học
+    // Nếu giá trị cũ không có trong danh sách mới → dùng cái đầu tiên
+    if (!pillars.contains(selectedPillar)) {
+      selectedPillar = pillars.first;
+    }
 
     showDialog(
       context: context,

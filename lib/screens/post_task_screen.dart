@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -53,7 +54,97 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
 
   bool get _isMobile => MediaQuery.of(context).size.width < 768;
 
+  // ───────────────── CHẾ ĐỘ DEMO ─────────────────
+  // Đặt thành false để dùng mic thật + API thật
+  static const bool _demoMode = true;
+
+  static const List<Map<String, dynamic>> _mockSamples = [
+    // 1. Học thuật
+    {
+      'title': 'Cần người giải thích bài Giải tích chương 3',
+      'description': 'Mình không hiểu phần đạo hàm hàm hợp và quy tắc dây chuyền. Cần ai ngồi chỉ bài khoảng 45 phút tại thư viện.',
+      'category': 'academic',
+      'urgency': 'urgent',
+      'suggested_compensation': 50000,
+      'estimated_minutes': 45,
+      'pickup': {'building': 'Thư viện', 'level': 'Tầng 2', 'landmark': 'Phòng học nhóm'},
+      'delivery': {'building': 'Thư viện', 'level': 'Tầng 2', 'landmark': 'Phòng học nhóm'},
+    },
+    // 2. Đồ ăn
+    {
+      'title': 'Mua trà sữa Gong Cha mang về ký túc xá',
+      'description': 'Order 1 ly trà sữa matcha đường 50% ít đá tại Gong Cha gần cổng, mang về phòng 215 ký túc xá.',
+      'category': 'food',
+      'urgency': 'normal',
+      'suggested_compensation': 20000,
+      'estimated_minutes': 20,
+      'pickup': {'building': 'Cổng trường', 'level': 'Tầng 1', 'landmark': 'Gong Cha'},
+      'delivery': {'building': 'Ký túc xá', 'level': 'Tầng 2', 'landmark': 'Phòng 215'},
+    },
+    // 3. Công nghệ
+    {
+      'title': 'Cần giúp cài đặt môi trường VSCode + Flutter',
+      'description': 'Máy tính mới cài Windows, chưa biết cách cài Flutter SDK và cấu hình VSCode. Cần ai ngồi hỗ trợ khoảng 1 tiếng.',
+      'category': 'tech',
+      'urgency': 'normal',
+      'suggested_compensation': 60000,
+      'estimated_minutes': 60,
+      'pickup': {'building': 'PKA Block A', 'level': 'Tầng 4', 'landmark': 'Phòng máy tính'},
+      'delivery': {'building': 'PKA Block A', 'level': 'Tầng 4', 'landmark': 'Phòng máy tính'},
+    },
+    // 4. Việc vặt
+    {
+      'title': 'In và đóng tập tài liệu 50 trang',
+      'description': 'Cần in 50 trang tài liệu A4 (file PDF) tại tiệm in gần trường, đóng bìa, mang về phòng học.',
+      'category': 'errands',
+      'urgency': 'normal',
+      'suggested_compensation': 25000,
+      'estimated_minutes': 30,
+      'pickup': {'building': 'Cổng trường', 'level': 'Tầng 1', 'landmark': 'Tiệm photocopy'},
+      'delivery': {'building': 'PKA Block C', 'level': 'Tầng 1', 'landmark': 'Phòng 102'},
+    },
+    // 5. Chợ / Marketplace
+    {
+      'title': 'Bán máy tính bảng Samsung Galaxy Tab A8',
+      'description': 'Cần bán gấp Samsung Galaxy Tab A8 64GB màu xám, còn bảo hành 3 tháng, kèm bao da. Giá 3.500.000đ thương lượng.',
+      'category': 'marketplace',
+      'urgency': 'urgent',
+      'suggested_compensation': 15000,
+      'estimated_minutes': 15,
+      'pickup': {'building': 'PKA Block B', 'level': 'Tầng 3', 'landmark': 'Phòng 310'},
+      'delivery': {'building': 'PKA Block B', 'level': 'Tầng 3', 'landmark': 'Phòng 310'},
+    },
+    // 6. Sự kiện / Xã hội
+    {
+      'title': 'Cần người chụp ảnh cho buổi thuyết trình nhóm',
+      'description': 'Nhóm mình có buổi thuyết trình cuối kỳ lúc 2h chiều nay ở hội trường B. Cần 1 người chụp ảnh + quay clip ngắn làm kỷ niệm.',
+      'category': 'social',
+      'urgency': 'urgent',
+      'suggested_compensation': 40000,
+      'estimated_minutes': 60,
+      'pickup': {'building': 'Hội trường B', 'level': 'Tầng 1', 'landmark': 'Cửa vào chính'},
+      'delivery': {'building': 'Hội trường B', 'level': 'Tầng 1', 'landmark': 'Cửa vào chính'},
+    },
+  ];
+  // ─────────────────────────────────────────────────
+
   Future<void> _startRecording() async {
+    if (_demoMode) {
+      // Demo: giả lập ghi âm 2 giây rồi nhảy thẳng ra kết quả AI mẫu
+      setState(() {
+        isRecording = true;
+        recordingSeconds = 0;
+      });
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        setState(() => recordingSeconds++);
+        if (recordingSeconds >= 2) {
+          _timer?.cancel();
+          _stopRecordingDemo();
+        }
+      });
+      return;
+    }
+
     final ok = await _audioRecorder.startRecording();
     if (!ok) {
       if (!mounted) return;
@@ -73,6 +164,34 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
       setState(() => recordingSeconds++);
     });
   }
+
+  // Dừng ghi âm demo — load kết quả AI mẫu trực tiếp
+  void _stopRecordingDemo() {
+    _timer?.cancel();
+    setState(() {
+      isRecording = false;
+      isTranscribing = true;
+    });
+
+    // Giả lập độ trễ "đang xử lý AI"
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      setState(() {
+        isTranscribing = false;
+        isProcessing = true;
+      });
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (!mounted) return;
+        setState(() {
+          final pick = _mockSamples[Random().nextInt(_mockSamples.length)];
+          aiPreview = Map<String, dynamic>.from(pick);
+          isProcessing = false;
+          showPreview = true;
+        });
+      });
+    });
+  }
+
 
   Future<void> _stopRecording() async {
     _timer?.cancel();
@@ -123,6 +242,40 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     }
   }
 
+  /// Trả về index mẫu phù hợp nhất dựa trên từ khóa trong [input].
+  int _matchSampleIndex(String input) {
+    final text = input.toLowerCase();
+
+    // Từ khóa theo từng danh mục
+    const keywords = [
+      // 0 - academic
+      ['học', 'bài', 'toán', 'lý', 'hóa', 'giải tích', 'môn', 'ôn', 'chỉ', 'dạy', 'giải', 'hiểu', 'giải thích'],
+      // 1 - food
+      ['ăn', 'mua', 'cơm', 'trà', 'sữa', 'nước', 'đồ ăn', 'food', 'mang', 'order', 'gong cha', 'bữa'],
+      // 2 - tech
+      ['cài', 'máy', 'code', 'lập trình', 'flutter', 'vscode', 'app', 'phần mềm', 'setup', 'fix lỗi', 'debug'],
+      // 3 - errands
+      ['in', 'photocopy', 'tài liệu', 'photo', 'giấy', 'giao', 'chạy', 'lấy', 'nhờ', 'việc'],
+      // 4 - marketplace
+      ['bán', 'mua lại', 'thanh lý', 'đồ cũ', 'giá', 'thương lượng', 'second hand'],
+      // 5 - social
+      ['chụp', 'quay', 'ảnh', 'video', 'sự kiện', 'thuyết trình', 'buổi', 'event'],
+    ];
+
+    int bestIdx = -1;
+    int bestScore = 0;
+
+    for (int i = 0; i < keywords.length; i++) {
+      int score = keywords[i].where((kw) => text.contains(kw)).length;
+      if (score > bestScore) {
+        bestScore = score;
+        bestIdx = i;
+      }
+    }
+
+    return bestIdx >= 0 ? bestIdx : Random().nextInt(_mockSamples.length);
+  }
+
   Future<void> _processWithAI(String input) async {
     if (input.trim().isEmpty) {
       ShadToaster.of(context).show(
@@ -138,6 +291,19 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
       isProcessing = true;
       aiError = null;
     });
+
+    if (_demoMode) {
+      // Demo: nhận diện từ khóa → chọn mẫu phù hợp
+      await Future.delayed(const Duration(milliseconds: 900));
+      if (!mounted) return;
+      final idx = _matchSampleIndex(input);
+      setState(() {
+        aiPreview = Map<String, dynamic>.from(_mockSamples[idx]);
+        isProcessing = false;
+        showPreview = true;
+      });
+      return;
+    }
 
     final result = await AIService.formatTask(input);
 
