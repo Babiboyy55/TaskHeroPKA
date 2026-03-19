@@ -11,7 +11,16 @@ enum TaskCategory {
   const TaskCategory(this.label, this.emoji);
 }
 
-enum TaskStatus { open, accepted, inProgress, completed, cancelled }
+enum TaskStatus {
+  open('Đang mở'),
+  accepted('Đã nhận'),
+  inProgress('Đang thực hiện'),
+  completed('Đã hoàn thành'),
+  cancelled('Đã hủy');
+
+  final String label;
+  const TaskStatus(this.label);
+}
 
 enum TaskUrgency { normal, urgent, emergency }
 

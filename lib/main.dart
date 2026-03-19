@@ -15,6 +15,7 @@ import 'screens/profile_screen.dart';
 import 'screens/task_detail_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/admin_screen.dart';
+import 'screens/admin_user_detail_screen.dart';
 import 'services/firestore_service.dart';
 import 'models/user_profile.dart';
 
@@ -91,6 +92,7 @@ class _AppShellState extends State<AppShell> {
   final FirestoreService _firestoreService = FirestoreService();
   int _page = 0;
   HeroTask? _selectedTask;
+  UserProfile? _selectedAdminUser;
   UserProfile? _currentUser;
 
   @override
@@ -119,9 +121,12 @@ class _AppShellState extends State<AppShell> {
   void _nav(int i) => setState(() {
         _page = i;
         _selectedTask = null;
+        _selectedAdminUser = null;
       });
   void _openTask(HeroTask t) => setState(() => _selectedTask = t);
   void _closeTask() => setState(() => _selectedTask = null);
+  void _openAdminUser(UserProfile u) => setState(() => _selectedAdminUser = u);
+  void _closeAdminUser() => setState(() => _selectedAdminUser = null);
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +139,9 @@ class _AppShellState extends State<AppShell> {
       body: isMobile
           ? (_selectedTask != null
               ? TaskDetailScreen(task: _selectedTask!, onBack: _closeTask)
-              : _buildPage())
+              : (_selectedAdminUser != null
+                  ? AdminUserDetailScreen(user: _selectedAdminUser!, onBack: _closeAdminUser)
+                  : _buildPage()))
           : Row(
               children: [
                 _buildSidebar(theme),
@@ -145,11 +152,12 @@ class _AppShellState extends State<AppShell> {
                       return FadeTransition(opacity: animation, child: child);
                     },
                     child: KeyedSubtree(
-                      key: ValueKey(_selectedTask?.id ?? _page),
+                      key: ValueKey(_selectedTask?.id ?? _selectedAdminUser?.uid ?? _page),
                       child: _selectedTask != null
-                          ? TaskDetailScreen(
-                              task: _selectedTask!, onBack: _closeTask)
-                          : _buildPage(),
+                          ? TaskDetailScreen(task: _selectedTask!, onBack: _closeTask)
+                          : (_selectedAdminUser != null
+                              ? AdminUserDetailScreen(user: _selectedAdminUser!, onBack: _closeAdminUser)
+                              : _buildPage()),
                     ),
                   ),
                 ),
@@ -409,7 +417,9 @@ class _AppShellState extends State<AppShell> {
       case 3:
         return ProfileScreen(onTaskTap: _openTask);
       case 4:
-        return _isAdmin ? const AdminScreen() : HomeScreen(onNavigate: _nav, onTaskTap: _openTask);
+        return _isAdmin 
+          ? AdminScreen(onUserSelected: _openAdminUser) 
+          : HomeScreen(onNavigate: _nav, onTaskTap: _openTask);
       default:
         return HomeScreen(onNavigate: _nav, onTaskTap: _openTask);
     }

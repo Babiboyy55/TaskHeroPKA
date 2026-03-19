@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildStatCards(ShadThemeData theme, UserProfile? profile) {
     final stats = [
-      StatCard(icon: LucideIcons.dollarSign, title: 'Tổng thu nhập', value: formatVND(profile?.totalEarned ?? 0), subtitle: 'từ tháng trước', badge: '+0%'),
+      StatCard(icon: LucideIcons.banknote, title: 'Tổng thu nhập', value: formatVND(profile?.totalEarned ?? 0), subtitle: 'từ tháng trước', badge: '+0%'),
       StatCard(icon: LucideIcons.users, title: 'Nhiệm vụ đã đăng', value: '${profile?.tasksPosted ?? 0}', subtitle: 'từ tháng trước', badge: '+0%'),
       StatCard(icon: LucideIcons.circleCheck, title: 'Đã hoàn thành', value: '${profile?.tasksCompleted ?? 0}', subtitle: 'từ tháng trước', badge: '+0%'),
       StatCard(icon: LucideIcons.star, title: 'Đánh giá', value: '${profile?.rating.toStringAsFixed(1) ?? "5.0"}', subtitle: '${profile?.totalReviews ?? 0} đánh giá', badge: '+0'),

@@ -56,7 +56,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
 
   // ───────────────── CHẾ ĐỘ DEMO ─────────────────
   // Đặt thành false để dùng mic thật + API thật
-  static const bool _demoMode = true;
+  static const bool _demoMode = false;
 
   static const List<Map<String, dynamic>> _mockSamples = [
     // 1. Học thuật
@@ -416,6 +416,98 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         aiPreview = {};
         aiError = null;
         _descController.clear();
+      });
+    } catch (e) {
+      print('[PostTask] Lỗi khi tạo nhiệm vụ: $e');
+      if (!mounted) return;
+      setState(() => isPosting = false);
+      ShadToaster.of(context).show(
+        ShadToast.destructive(
+          title: const Text('Không thể đăng nhiệm vụ'),
+          description: Text('Lỗi: $e'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _postTaskManual() async {
+    if (_descController.text.trim().isEmpty) {
+      ShadToaster.of(context).show(
+        const ShadToast.destructive(
+          title: Text('Thiếu thông tin'),
+          description: Text('Vui lòng nhập mô tả nhiệm vụ.'),
+        ),
+      );
+      return;
+    }
+    
+    if (isPosting) return;
+    setState(() => isPosting = true);
+
+    try {
+      final categoryStr = selectedCategory ?? 'errands';
+      TaskCategory category;
+      try {
+        category = TaskCategory.values.firstWhere(
+          (c) => c.name.toLowerCase() == categoryStr.toLowerCase() ||
+                 c.label.toLowerCase() == categoryStr.toLowerCase(),
+          orElse: () => TaskCategory.errands,
+        );
+      } catch (_) {
+        category = TaskCategory.errands;
+      }
+
+      final pickup = TaskLocation(
+        building: pickupBuilding ?? 'TBD',
+        level: '',
+        landmark: '',
+      );
+      
+      final delivery = TaskLocation(
+        building: deliveryBuilding ?? 'TBD',
+        level: '',
+        landmark: '',
+      );
+
+      final words = _descController.text.trim().split(' ');
+      final shortTitle = words.take(6).join(' ');
+
+      final task = HeroTask(
+        title: shortTitle.length > 5 ? shortTitle : 'Nhiệm vụ mới',
+        description: _descController.text,
+        category: category,
+        compensation: compensation,
+        status: TaskStatus.open,
+        urgency: TaskUrgency.normal,
+        estimatedMinutes: 20,
+        pickup: pickup,
+        delivery: delivery,
+        posterName: '',
+        posterRating: 5.0,
+        posterAvatarUrl: '',
+        createdAt: DateTime.now(),
+      );
+
+      print('[PostTask] Đang tạo nhiệm vụ thủ công lên Firestore...');
+      await _firestoreService.createTask(task);
+      print('[PostTask] Tạo nhiệm vụ thành công!');
+
+      if (!mounted) return;
+      
+      ShadToaster.of(context).show(
+        const ShadToast(
+          title: Text('Nhiệm vụ đã đăng!'),
+          description: Text('Nhiệm vụ của bạn đã có trên bảng tin.'),
+        ),
+      );
+      
+      setState(() {
+        isPosting = false;
+        _descController.clear();
+        selectedCategory = null;
+        pickupBuilding = null;
+        deliveryBuilding = null;
+        compensation = 15000;
       });
     } catch (e) {
       print('[PostTask] Lỗi khi tạo nhiệm vụ: $e');
@@ -974,26 +1066,12 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
             runSpacing: 8,
             children: [
               ShadButton(
-                leading: const Icon(LucideIcons.sparkles, size: 16),
-                child: const Text('AI Định dạng & Đăng'),
-                onPressed: () {
-                  // Làm giàu dữ liệu đầu vào với các giá trị từ form thủ công
-                  String enrichedInput = _descController.text;
-                  if (selectedCategory != null) {
-                    final catLabel = categories[selectedCategory] ?? selectedCategory;
-                    enrichedInput += '\nCategory: $catLabel';
-                  }
-                  if (pickupBuilding != null) {
-                    enrichedInput += '\nPickup: $pickupBuilding';
-                  }
-                  if (deliveryBuilding != null) {
-                    enrichedInput += '\nDelivery: $deliveryBuilding';
-                  }
-                  if (compensation != 5.00) {
-                    enrichedInput += '\nNgân sách: ${formatVND(compensation)}';
-                  }
-                  _processWithAI(enrichedInput);
-                },
+                leading: Icon(
+                  isPosting ? LucideIcons.loaderCircle : LucideIcons.check,
+                  size: 16,
+                ),
+                child: Text(isPosting ? 'Đang đăng...' : 'Đăng nhiệm vụ'),
+                onPressed: isPosting ? null : _postTaskManual,
               ),
               ShadButton.outline(
                 child: const Text('Hủy'),
@@ -1003,7 +1081,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                     selectedCategory = null;
                     pickupBuilding = null;
                     deliveryBuilding = null;
-                    compensation = 5.00;
+                    compensation = 15000;
                     aiError = null;
                     showPreview = false;
                     aiPreview = {};
@@ -1167,12 +1245,12 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                 const SizedBox(height: 6),
                 _previewRow(theme, LucideIcons.clock, 'Thời gian', '$estMinutes phút'),
                 const SizedBox(height: 6),
-                _previewRow(theme, LucideIcons.dollarSign, 'Thù lao',
-                    '$compDisplay (Nhận được $heroGets)'),
+                _previewRow(theme, LucideIcons.banknote, 'Thù lao',
+                    '$compDisplay (Bạn trả $compDisplay)'),
                 if (aiPreview['urgency'] != null) ...[
                   const SizedBox(height: 6),
-                  _previewRow(theme, LucideIcons.zap, 'Urgency',
-                      aiPreview['urgency'].toString()),
+                  _previewRow(theme, LucideIcons.zap, 'Độ khẩn cấp',
+                      aiPreview['urgency'] == 'emergency' ? 'Khẩn cấp' : (aiPreview['urgency'] == 'urgent' ? 'Gấp' : 'Bình thường')),
                 ],
               ],
             ),

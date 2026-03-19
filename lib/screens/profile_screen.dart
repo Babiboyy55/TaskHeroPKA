@@ -202,7 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         children: [
                           // Avatar
                           CircleAvatar(
-                            radius: 36,
+                            radius: isMobile ? 30 : 36, // Giảm một chút trên mobile
                             backgroundImage: userProfile.photoURL.isNotEmpty
                                 ? NetworkImage(userProfile.photoURL)
                                 : null,
@@ -270,12 +270,17 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                               await _authService.signOut();
                             },
                             size: ShadButtonSize.sm,
-                            child: const Row(
+                            padding: isMobile ? const EdgeInsets.all(8) : null,
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(LucideIcons.logOut, size: 14, color: Colors.white),
-                                SizedBox(width: 6),
-                                Text('Đăng xuất', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                const Icon(LucideIcons.logOut, size: 14, color: Colors.white),
+                                if (!isMobile) ...[
+                                  const SizedBox(width: 6),
+                                  const Text('Đăng xuất',
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 12)),
+                                ],
                               ],
                             ),
                           ),
@@ -323,17 +328,18 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: isMobile ? 2 : 4,
-                  childAspectRatio: isMobile ? 1.3 : 1.5,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
+                  childAspectRatio: isMobile ? 1.0 : 1.5, // Thẻ cao hơn để chứa chữ
+                  mainAxisSpacing: 12, // Giảm khoảng cách
+                  crossAxisSpacing: 12, // Giảm khoảng cách
                   children: [
                     _buildStatCard(
                       theme,
                       'Tổng thu nhập',
                       formatVND(userProfile.totalEarned),
                       userProfile.totalEarned > 0 ? 'tổng thu nhập' : 'chưa có thu nhập',
-                      LucideIcons.dollarSign,
+                      LucideIcons.banknote,
                       AppColors.green500,
+                      isMobile: isMobile,
                       changeColor: userProfile.totalEarned > 0 ? AppColors.green600 : Colors.grey,
                     ),
                     _buildStatCard(
@@ -343,24 +349,27 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                       userProfile.thisMonthEarned > 0 ? 'tháng này' : 'chưa có thu nhập',
                       LucideIcons.trendingUp,
                       AppColors.orange500,
+                      isMobile: isMobile,
                       changeColor: userProfile.thisMonthEarned > 0 ? AppColors.green600 : Colors.grey,
                     ),
                     _buildStatCard(
                       theme,
-                      'Nhiệm vụ đã làm',
+                      'Nhiệm vụ làm',
                       '${userProfile.tasksCompleted}',
                       userProfile.tasksCompleted > 0 ? 'nhiệm vụ hoàn thành' : 'chưa có nhiệm vụ',
                       LucideIcons.check,
                       AppColors.blue500,
+                      isMobile: isMobile,
                       changeColor: userProfile.tasksCompleted > 0 ? AppColors.green600 : Colors.grey,
                     ),
                     _buildStatCard(
                       theme,
-                      'Nhiệm vụ đã đăng',
+                      'Nhiệm vụ đăng',
                       '${userProfile.tasksPosted}',
                       userProfile.tasksPosted > 0 ? 'nhiệm vụ đã đăng' : 'chưa có nhiệm vụ',
                       LucideIcons.send,
                       AppColors.purple500,
+                      isMobile: isMobile,
                       changeColor: userProfile.tasksPosted > 0 ? AppColors.green600 : Colors.grey,
                     ),
                   ],
@@ -493,6 +502,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     String change,
     IconData icon,
     Color iconColor, {
+    required bool isMobile,
     Color changeColor = AppColors.green600,
   }) {
     return Container(
@@ -509,30 +519,40 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: theme.colorScheme.mutedForeground,
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: isMobile ? 11 : 13,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Icon(icon, size: 16, color: iconColor),
+              const SizedBox(width: 4),
+              Icon(icon, size: isMobile ? 14 : 16, color: iconColor),
             ],
           ),
           Text(
             value,
             style: TextStyle(
-              fontSize: 24,
+              fontSize: isMobile ? 18 : 24, // Giảm cỡ chữ trên mobile
               fontWeight: FontWeight.w700,
               color: theme.colorScheme.foreground,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
+          const SizedBox(height: 4),
           Text(
             change,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: isMobile ? 10 : 12, // Giảm cỡ chữ trên mobile
               color: changeColor,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -608,7 +628,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            task.status.name.toUpperCase(),
+                            task.status.label.toUpperCase(),
                             style: TextStyle(
                               fontSize: 12,
                               color: _getStatusColor(task.status),

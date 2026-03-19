@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/task_model.dart';
+import '../utils/currency_format.dart';
 
 class TaskCard extends StatefulWidget {
   final HeroTask task;
@@ -92,12 +93,12 @@ class _TaskCardState extends State<TaskCard> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    _chip(theme, LucideIcons.dollarSign,
-                        '\$${task.compensation.toStringAsFixed(2)}',
+                    _chip(theme, LucideIcons.banknote,
+                        formatVND(task.compensation),
                         highlight: true),
                     const SizedBox(width: 12),
                     _chip(theme, LucideIcons.clock,
-                        '${task.estimatedMinutes}min'),
+                        '${task.estimatedMinutes} phút'),
                     const SizedBox(width: 12),
                     Flexible(
                       child: _chip(
@@ -137,21 +138,21 @@ class _TaskCardState extends State<TaskCard> {
                           fontSize: 12,
                           color: theme.colorScheme.mutedForeground),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 12),
                     Text(
                       task.timeAgo,
                       style: TextStyle(
                           fontSize: 11,
                           color: theme.colorScheme.mutedForeground),
                     ),
+                    const Spacer(),
                     if (task.status == TaskStatus.open &&
                         widget.onAccept != null) ...[
-                      const SizedBox(width: 8),
                       ShadButton(
                         size: ShadButtonSize.sm,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                         leading: const Icon(LucideIcons.zap, size: 14),
-                        child: const Text('Accept', style: TextStyle(fontSize: 12)),
+                        child: const Text('Nhận', style: TextStyle(fontSize: 12)),
                         onPressed: widget.onAccept,
                       ),
                     ],
@@ -164,7 +165,7 @@ class _TaskCardState extends State<TaskCard> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
-                          'In Progress',
+                          'Đang làm',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
@@ -190,7 +191,7 @@ class _TaskCardState extends State<TaskCard> {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        emergency ? 'EMERGENCY' : 'URGENT',
+        emergency ? 'KHẨN CẤP' : 'GẤP',
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,

@@ -8,6 +8,7 @@ class UserProfile {
   final String pillar;
   final int year;
   final double totalEarned;
+  final double totalSpent;
   final double thisMonthEarned;
   final int tasksCompleted;
   final int tasksPosted;
@@ -16,6 +17,9 @@ class UserProfile {
   final DateTime createdAt;
   final DateTime lastActive;
   final bool isAdmin;
+  final bool isBlocked;
+  final bool isVerified;
+  final String adminNotes;
 
   const UserProfile({
     required this.uid,
@@ -25,6 +29,7 @@ class UserProfile {
     this.pillar = 'ISTD',
     this.year = 1,
     this.totalEarned = 0.0,
+    this.totalSpent = 0.0,
     this.thisMonthEarned = 0.0,
     this.tasksCompleted = 0,
     this.tasksPosted = 0,
@@ -33,6 +38,9 @@ class UserProfile {
     required this.createdAt,
     required this.lastActive,
     this.isAdmin = false,
+    this.isBlocked = false,
+    this.isVerified = false,
+    this.adminNotes = '',
   });
 
   factory UserProfile.fromFirestore(DocumentSnapshot doc) {
@@ -45,6 +53,7 @@ class UserProfile {
       pillar: data['pillar'] ?? 'ISTD',
       year: data['year'] ?? 1,
       totalEarned: (data['totalEarned'] ?? 0.0).toDouble(),
+      totalSpent: (data['totalSpent'] ?? 0.0).toDouble(),
       thisMonthEarned: (data['thisMonthEarned'] ?? 0.0).toDouble(),
       tasksCompleted: data['tasksCompleted'] ?? 0,
       tasksPosted: data['tasksPosted'] ?? 0,
@@ -57,6 +66,9 @@ class UserProfile {
           ? (data['lastActive'] as Timestamp).toDate()
           : DateTime.now(),
       isAdmin: data['isAdmin'] == true,
+      isBlocked: data['isBlocked'] == true,
+      isVerified: data['isVerified'] == true,
+      adminNotes: data['adminNotes'] ?? '',
     );
   }
 
@@ -68,6 +80,7 @@ class UserProfile {
       'pillar': pillar,
       'year': year,
       'totalEarned': totalEarned,
+      'totalSpent': totalSpent,
       'thisMonthEarned': thisMonthEarned,
       'tasksCompleted': tasksCompleted,
       'tasksPosted': tasksPosted,
@@ -75,6 +88,10 @@ class UserProfile {
       'totalReviews': totalReviews,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastActive': Timestamp.fromDate(lastActive),
+      'isAdmin': isAdmin,
+      'isBlocked': isBlocked,
+      'isVerified': isVerified,
+      'adminNotes': adminNotes,
     };
   }
 
@@ -84,12 +101,17 @@ class UserProfile {
     String? pillar,
     int? year,
     double? totalEarned,
+    double? totalSpent,
     double? thisMonthEarned,
     int? tasksCompleted,
     int? tasksPosted,
     double? rating,
     int? totalReviews,
     DateTime? lastActive,
+    bool? isAdmin,
+    bool? isBlocked,
+    bool? isVerified,
+    String? adminNotes,
   }) {
     return UserProfile(
       uid: uid,
@@ -99,6 +121,7 @@ class UserProfile {
       pillar: pillar ?? this.pillar,
       year: year ?? this.year,
       totalEarned: totalEarned ?? this.totalEarned,
+      totalSpent: totalSpent ?? this.totalSpent,
       thisMonthEarned: thisMonthEarned ?? this.thisMonthEarned,
       tasksCompleted: tasksCompleted ?? this.tasksCompleted,
       tasksPosted: tasksPosted ?? this.tasksPosted,
@@ -106,6 +129,10 @@ class UserProfile {
       totalReviews: totalReviews ?? this.totalReviews,
       createdAt: createdAt,
       lastActive: lastActive ?? this.lastActive,
+      isAdmin: isAdmin ?? this.isAdmin,
+      isBlocked: isBlocked ?? this.isBlocked,
+      isVerified: isVerified ?? this.isVerified,
+      adminNotes: adminNotes ?? this.adminNotes,
     );
   }
 

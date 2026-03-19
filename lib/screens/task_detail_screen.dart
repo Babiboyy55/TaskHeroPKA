@@ -277,6 +277,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       _pill(task.category.label, AppColors.orangeLight,
           AppColors.orange600),
       if (task.urgency == TaskUrgency.urgent)
+        _pill('GẤP', const Color(0xFFFEF3C7),
+            const Color(0xFFD97706)),
+      if (task.urgency == TaskUrgency.emergency)
         _pill('KHẨN CẤP', const Color(0xFFFEE2E2),
             const Color(0xFFDC2626)),
       if (task.status == TaskStatus.accepted)
@@ -411,17 +414,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   const Icon(LucideIcons.partyPopper,
                       size: 16, color: Color(0xFF16A34A)),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      isHero
-                          ? 'Hoàn thành! Bạn kiếm được \$${task.heroEarnings.toStringAsFixed(2)}'
-                          : 'Hoàn thành! Đã thanh toán \$${task.compensation.toStringAsFixed(2)}.',
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF16A34A)),
+                    Expanded(
+                      child: Text(
+                        isHero
+                            ? 'Hoàn thành! Bạn kiếm được ${formatVND(task.heroEarnings)}'
+                            : 'Hoàn thành! Đã thanh toán ${formatVND(task.compensation)}.',
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF16A34A)),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -553,7 +556,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             runSpacing: 8,
             children: [
               _detailChip(
-                  theme, LucideIcons.clock, '${task.estimatedMinutes}min'),
+                  theme, LucideIcons.clock, '${task.estimatedMinutes} phút'),
               _detailChip(
                   theme, LucideIcons.mapPin, task.delivery.building),
               _detailChip(

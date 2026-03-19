@@ -117,15 +117,20 @@ class FirestoreService {
     if (currentUserId == null) throw Exception('Người dùng chưa đăng nhập');
 
     try {
-      // Đọc xếp hạng thực tế của poster từ hồ sơ
+      // Đọc trạng thái tài khoản từ hồ sơ
       double posterRating = 5.0;
+      bool isBlocked = false;
       try {
         final userDoc = await _firestore.collection('users').doc(currentUserId).get();
         if (userDoc.exists) {
-          posterRating = (userDoc.data()?['rating'] as num?)?.toDouble() ?? 5.0;
+          final data = userDoc.data()!;
+          posterRating = (data['rating'] as num?)?.toDouble() ?? 5.0;
+          isBlocked = data['isBlocked'] == true;
         }
-      } catch (_) {
-        // Dự phòng 5.0 nếu không đọc được hồ sơ
+      } catch (_) {}
+
+      if (isBlocked) {
+        throw Exception('Tài khoản của bạn đã bị khóa bởi Quản trị viên.');
       }
 
       final taskData = {
@@ -443,15 +448,32 @@ class FirestoreService {
       'status': TaskStatus.completed.name,
       'completedAt': Timestamp.now(),
     });
+    print('[Firestore] Đã cập nhật trạng thái COMPLETED cho task $taskId');
 
     // Cập nhật thu nhập và số nhiệm vụ hoàn thành của hero (dùng heroId, không phải currentUserId)
-    await _firestore.collection('users').doc(heroId).update({
-      'totalEarned': FieldValue.increment(heroEarnings),
-      'thisMonthEarned': FieldValue.increment(heroEarnings),
-      'tasksCompleted': FieldValue.increment(1),
-    });
+    try {
+      await _firestore.collection('users').doc(heroId).update({
+        'totalEarned': FieldValue.increment(heroEarnings),
+        'thisMonthEarned': FieldValue.increment(heroEarnings),
+        'tasksCompleted': FieldValue.increment(1),
+      });
+      print('[Firestore] Đã cập nhật tiền thù lao cho Hero $heroId: +${heroEarnings.toStringAsFixed(0)}đ');
+      
+      // Cập nhật chi tiêu của Poster (người đăng)
+      print('[Firestore] Đang cập nhật chi tiêu cho Poster $posterId: +${compensation.toStringAsFixed(0)}đ');
+      await _firestore.collection('users').doc(posterId).update({
+        'totalSpent': FieldValue.increment(compensation),
+      });
+      print('[Firestore] Đã cập nhật chi tiêu cho Poster $posterId.');
+    } catch (e) {
+      print('[Firestore] LỖI khi cập nhật tiền cho Hero $heroId: $e');
+      // Thử lại với heroId từ currentUserId nếu poster tự hoàn thành cho chính mình (để test)
+      if (currentUserId == heroId) {
+        print('[Firestore] Thử lại cập nhật cho chính mình...');
+      }
+    }
 
-    print('[Firestore] Nhiệm vụ $taskId hoàn thành. Hero $heroId kiếm được ${heroEarnings.toStringAsFixed(0)}đ');
+    print('[Firestore] Nhiệm vụ $taskId hoàn thành hoàn toàn.');
   }
 
   /// Hàm chuyển đổi Firestore doc thành HeroTask
@@ -466,7 +488,7 @@ class FirestoreService {
         (c) => c.name == data['category'],
         orElse: () => TaskCategory.errands,
       ),
-      compensation: (data['compensation'] as num).toDouble(),
+      compensation: (data['compensation'] ?? 0).toDouble(),
       status: TaskStatus.values.firstWhere(
         (s) => s.name == data['status'],
         orElse: () => TaskStatus.open,
@@ -535,22 +557,33 @@ class FirestoreService {
   /// Thống kê tổng quan cho admin dashboard
   Future<Map<String, dynamic>> getAdminStats() async {
     try {
-      // Lấy tất cả tasks
-      final tasksSnap = await _firestore.collection('tasks').get();
+      print('[Firestore] Bắt đầu getAdminStats (Source: Server)...');
+      // Lấy tất cả tasks (Ép buộc server trên Web)
+      final tasksSnap = await _firestore.collection('tasks').get(
+        kIsWeb ? const GetOptions(source: Source.server) : const GetOptions()
+      );
+      
       final tasks = tasksSnap.docs.map((doc) {
-        try { return _taskFromFirestore(doc); } catch (_) { return null; }
+        try { 
+          return _taskFromFirestore(doc); 
+        } catch (e) { 
+          print('[Firestore] Lỗi parse task ${doc.id}: $e');
+          return null; 
+        }
       }).whereType<HeroTask>().toList();
 
-      // Lấy tất cả users
-      final usersSnap = await _firestore.collection('users').get();
+      // Lấy tất cả users (Ép buộc server trên Web)
+      final usersSnap = await _firestore.collection('users').get(
+        kIsWeb ? const GetOptions(source: Source.server) : const GetOptions()
+      );
+
+      print('[Firestore] getAdminStats: Lấy xong ${tasks.length} tasks và ${usersSnap.docs.length} users');
 
       final totalTasks = tasks.length;
       final completedTasks = tasks.where((t) => t.status == TaskStatus.completed).toList();
       final openTasks = tasks.where((t) => t.status == TaskStatus.open).length;
 
-      // Tổng tiền giao dịch (các task đã hoàn thành)
       final totalVolume = completedTasks.fold<double>(0, (sum, t) => sum + t.compensation);
-      // Phí platform 5%
       final platformRevenue = totalVolume * 0.05;
 
       return {
@@ -566,8 +599,95 @@ class FirestoreService {
           ..sort((a, b) => b.completedAt!.compareTo(a.completedAt!)),
       };
     } catch (e) {
-      print('[Firestore] Lỗi getAdminStats: $e');
+      print('[Firestore] Lỗi NGHIÊM TRỌNG getAdminStats: $e');
       return {};
     }
+  }
+
+  /// Admin cập nhật thông tin người dùng bất kỳ
+  Future<void> adminUpdateUser(String uid, Map<String, dynamic> updates) async {
+    // Lưu ý: Quy tắc Firestore sẽ chặn nếu người gọi không phải ADMIN thực sự
+    try {
+      await _firestore.collection('users').doc(uid).update(updates);
+      print('[Firestore] Admin đã cập nhật user $uid: $updates');
+    } catch (e) {
+      print('[Firestore] Lỗi Admin cập nhật user $uid: $e');
+      rethrow;
+    }
+  }
+
+  /// Admin xóa người dùng (chỉ xóa doc trong Firestore)
+  Future<void> adminDeleteUser(String uid) async {
+    try {
+      await _firestore.collection('users').doc(uid).delete();
+      print('[Firestore] Admin đã xóa user $uid');
+    } catch (e) {
+      print('[Firestore] Lỗi Admin xóa user $uid: $e');
+      rethrow;
+    }
+  }
+
+  /// Lấy lịch sử nhiệm vụ của một người dùng (đã đăng hoặc được giao)
+  Future<List<HeroTask>> getUserTaskHistory(String uid) async {
+    try {
+      // Lấy nhiệm vụ đã đăng
+      final posted = await _firestore
+          .collection('tasks')
+          .where('posterId', isEqualTo: uid)
+          .get();
+
+      // Lấy nhiệm vụ được giao
+      final assigned = await _firestore
+          .collection('tasks')
+          .where('heroId', isEqualTo: uid)
+          .get();
+
+      final allTasks = [...posted.docs, ...assigned.docs]
+          .map((doc) => _taskFromFirestore(doc))
+          .toList();
+
+      // Loại bỏ trùng lặp (nếu có) và sắp xếp
+      final uniqueTasks = {for (var t in allTasks) t.id: t}.values.toList();
+      uniqueTasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      
+      return uniqueTasks.cast<HeroTask>();
+    } catch (e) {
+      print('[Firestore] Lỗi getUserTaskHistory: $e');
+      return [];
+    }
+  }
+
+  /// Lấy danh sách bảng xếp hạng (Top kiếm tiền và Top chi tiêu)
+  Future<Map<String, List<UserProfile>>> getLeaderboardData() async {
+    final Map<String, List<UserProfile>> result = {
+      'topEarners': [],
+      'topSpenders': [],
+    };
+
+    try {
+      // Top 5 Earners
+      final earnersSnap = await _firestore
+          .collection('users')
+          .orderBy('totalEarned', descending: true)
+          .limit(5)
+          .get();
+      result['topEarners'] = earnersSnap.docs
+          .map((doc) => UserProfile.fromFirestore(doc))
+          .toList();
+
+      // Top 5 Spenders
+      final spendersSnap = await _firestore
+          .collection('users')
+          .orderBy('totalSpent', descending: true)
+          .limit(5)
+          .get();
+      result['topSpenders'] = spendersSnap.docs
+          .map((doc) => UserProfile.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      print('[Firestore] Lỗi lấy dữ liệu Leaderboard: $e');
+    }
+
+    return result;
   }
 }

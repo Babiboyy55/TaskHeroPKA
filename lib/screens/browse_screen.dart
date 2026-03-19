@@ -5,6 +5,7 @@ import '../models/task_model.dart';
 import '../widgets/task_card.dart';
 import '../theme/app_colors.dart';
 import '../services/firestore_service.dart';
+import '../utils/currency_format.dart';
 
 class BrowseScreen extends StatefulWidget {
   final void Function(HeroTask) onTaskTap;
@@ -351,7 +352,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
             child: Row(
               children: [
                 Text(
-                  '${tasks.length} task${tasks.length == 1 ? '' : 's'}',
+                  '${tasks.length} nhiệm vụ',
                   style: TextStyle(
                     fontSize: 12,
                     color: theme.colorScheme.mutedForeground,
@@ -454,7 +455,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
             Expanded(
               child: Text(
-                '\$${task.compensation.toStringAsFixed(2)}',
+                formatVND(task.compensation),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -464,7 +465,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
             Expanded(
               child: Text(
-                '${task.estimatedMinutes}min',
+                '${task.estimatedMinutes} phút',
                 style: TextStyle(
                   fontSize: 12,
                   color: theme.colorScheme.mutedForeground,

@@ -1,12 +1,14 @@
 // ignore_for_file: unused_field
 import 'dart:typed_data';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../config/api_keys.dart';
 
 // ─── CẤU HÌNH CHẾ ĐỘ GIẢ LẬP ──────────────────────────────────────
 // Đặt useMockAI = false và thêm API keys thật vào lib/config/api_keys.dart
 // để bật lời gọi API thật (Deepgram STT + OpenAI GPT-4o-mini)
 class MockAIConfig {
-  static const bool useMockAI = true;
+  static const bool useMockAI = false;
 }
 // ──────────────────────────────────────────────────────────────────
 
@@ -21,7 +23,6 @@ class DeepgramService {
       return null;
     }
 
-    /* Triển khai thật — bỏ comment khi có Deepgram API key
     try {
       final response = await http.post(
         Uri.parse('https://api.deepgram.com/v1/listen?model=nova-2&language=vi'),
@@ -35,11 +36,12 @@ class DeepgramService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['results']['channels'][0]['alternatives'][0]['transcript'];
+      } else {
+        print('[Deepgram] HTTP Error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('[Deepgram] Lỗi: $e');
     }
-    */
     return null;
   }
 }
@@ -54,7 +56,6 @@ class AIService {
       return _mockFormatTask(description);
     }
 
-    /* Triển khai thật — bỏ comment khi có OpenAI API key
     const systemPrompt = '''
 You are TaskHero AI, helping PKA students format task requests.
 
@@ -77,34 +78,38 @@ Return ONLY valid JSON:
 
     try {
       final response = await http.post(
-        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$_openaiApiKey'),
         headers: {
-          'Authorization': 'Bearer $_openaiApiKey',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'gpt-4o-mini',
-          'messages': [
-            {'role': 'system', 'content': systemPrompt},
-            {'role': 'user', 'content': description},
+          'system_instruction': {
+            'parts': [{'text': systemPrompt}]
+          },
+          'contents': [
+            {'parts': [{'text': description}]}
           ],
-          'temperature': 0.3,
-          'max_tokens': 400,
+          'generationConfig': {
+             'temperature': 0.3,
+             'maxOutputTokens': 400,
+             'responseMimeType': 'application/json'
+          }
         }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final content = data['choices'][0]['message']['content'] as String;
+        final content = data['candidates'][0]['content']['parts'][0]['text'] as String;
         final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(content);
         if (jsonMatch != null) {
           return jsonDecode(jsonMatch.group(0)!) as Map<String, dynamic>;
         }
+      } else {
+        print('[Gemini] HTTP Error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('[OpenAI] Lỗi: $e');
+      print('[Gemini] Lỗi: $e');
     }
-    */
     return null;
   }
 
