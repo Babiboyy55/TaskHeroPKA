@@ -117,16 +117,20 @@ class _TaskCardState extends State<TaskCard> {
                       placeholder: Text(task.posterName.isNotEmpty ? task.posterName[0] : '?'),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      task.posterName,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.foreground,
+                    Flexible(
+                      child: Text(
+                        task.posterName,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: theme.colorScheme.foreground,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 4),
                     Icon(LucideIcons.star, size: 11, color: Colors.amber),
+                    const SizedBox(width: 2),
                     Text(
                       task.posterRating.toString(),
                       style: TextStyle(
@@ -137,16 +141,17 @@ class _TaskCardState extends State<TaskCard> {
                     Text(
                       task.timeAgo,
                       style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: theme.colorScheme.mutedForeground),
                     ),
                     if (task.status == TaskStatus.open &&
                         widget.onAccept != null) ...[
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       ShadButton(
                         size: ShadButtonSize.sm,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                         leading: const Icon(LucideIcons.zap, size: 14),
-                        child: const Text('Accept'),
+                        child: const Text('Accept', style: TextStyle(fontSize: 12)),
                         onPressed: widget.onAccept,
                       ),
                     ],

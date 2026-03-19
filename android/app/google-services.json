@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "369480142392",
+    "project_id": "health-is-wealth-b91b2-caa62",
+    "storage_bucket": "health-is-wealth-b91b2-caa62.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369480142392:android:b5305a58400d1e33d1e0cd",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "369480142392-s0s1gmd8u3o7gp40cv1a19cjo84qmcan.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_application_1",
+            "certificate_hash": "564e037f846c08576e9086214875574a6004f991"
+          }
+        },
+        {
+          "client_id": "369480142392-jc2of99eifbnj9fj9bnlt0ph2f36mbvm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-qM0xmswOVR4jUfQ_tHjmvaowsZr72pA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "369480142392-jc2of99eifbnj9fj9bnlt0ph2f36mbvm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "369480142392-0uk7k49r9sv9otd34ms1efr63rdcto3f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApplication1"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

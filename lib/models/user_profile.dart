@@ -15,6 +15,7 @@ class UserProfile {
   final int totalReviews;
   final DateTime createdAt;
   final DateTime lastActive;
+  final bool isAdmin;
 
   const UserProfile({
     required this.uid,
@@ -31,6 +32,7 @@ class UserProfile {
     this.totalReviews = 0,
     required this.createdAt,
     required this.lastActive,
+    this.isAdmin = false,
   });
 
   factory UserProfile.fromFirestore(DocumentSnapshot doc) {
@@ -54,6 +56,7 @@ class UserProfile {
       lastActive: data['lastActive'] is Timestamp
           ? (data['lastActive'] as Timestamp).toDate()
           : DateTime.now(),
+      isAdmin: data['isAdmin'] == true,
     );
   }
 

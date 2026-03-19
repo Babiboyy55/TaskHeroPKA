@@ -14,6 +14,7 @@ import 'screens/post_task_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/task_detail_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/admin_screen.dart';
 import 'services/firestore_service.dart';
 import 'models/user_profile.dart';
 
@@ -90,6 +91,30 @@ class _AppShellState extends State<AppShell> {
   final FirestoreService _firestoreService = FirestoreService();
   int _page = 0;
   HeroTask? _selectedTask;
+  UserProfile? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _firestoreService.getUserProfileStream().listen((profile) {
+      if (mounted) setState(() => _currentUser = profile);
+    });
+  }
+
+  bool get _isAdmin => _currentUser?.isAdmin == true;
+
+  List<({IconData icon, String label})> get _navItems {
+    final base = [
+      (icon: LucideIcons.house, label: 'Bảng điều khiển'),
+      (icon: LucideIcons.listTodo, label: 'Nhiệm vụ'),
+      (icon: LucideIcons.circlePlus, label: 'Đăng nhiệm vụ'),
+      (icon: LucideIcons.user, label: 'Hồ sơ'),
+    ];
+    if (_isAdmin) {
+      return [...base, (icon: LucideIcons.shieldCheck, label: 'Admin')];
+    }
+    return base;
+  }
 
   void _nav(int i) => setState(() {
         _page = i;
@@ -97,13 +122,6 @@ class _AppShellState extends State<AppShell> {
       });
   void _openTask(HeroTask t) => setState(() => _selectedTask = t);
   void _closeTask() => setState(() => _selectedTask = null);
-
-  static const _navItems = [
-    (icon: LucideIcons.house, label: 'Bảng điều khiển'),
-    (icon: LucideIcons.listTodo, label: 'Nhiệm vụ'),
-    (icon: LucideIcons.circlePlus, label: 'Đăng nhiệm vụ'),
-    (icon: LucideIcons.user, label: 'Hồ sơ'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -356,6 +374,9 @@ class _AppShellState extends State<AppShell> {
                       const SizedBox(height: 3),
                       Text(
                         item.label,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: active
@@ -387,6 +408,8 @@ class _AppShellState extends State<AppShell> {
         return const PostTaskScreen();
       case 3:
         return ProfileScreen(onTaskTap: _openTask);
+      case 4:
+        return _isAdmin ? const AdminScreen() : HomeScreen(onNavigate: _nav, onTaskTap: _openTask);
       default:
         return HomeScreen(onNavigate: _nav, onTaskTap: _openTask);
     }

@@ -1,40 +1,36 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Hàm kiểm tra xem người dùng có phải là Admin không
+    function isAdmin() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
 
     // Users collection
     match /users/{userId} {
-      // Anyone authenticated can read any user profile (needed for poster info)
+      // Cho phép đọc thông tin cá nhân hoặc Admin đọc tất cả
       allow read: if request.auth != null;
 
-      // Users can create their own profile
+      // Người dùng tự tạo hồ sơ của mình
       allow create: if request.auth != null && request.auth.uid == userId;
 
-      // Users can update their own profile, OR the system can update
-      // earnings fields when completing a task (hero earnings update)
-      // For hackathon simplicity, allow any authenticated user to update
-      // (server-side validation handles authorization)
-      allow update: if request.auth != null;
+      // Người dùng tự cập nhật HOẶC Admin cập nhật
+      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
 
-      // No one can delete user profiles
       allow delete: if false;
     }
 
     // Tasks collection
     match /tasks/{taskId} {
-      // Any authenticated user can read tasks
       allow read: if request.auth != null;
-
-      // Any authenticated user can create a task (they become the poster)
-      allow create: if request.auth != null
-                     && request.resource.data.posterId == request.auth.uid
-                     && request.resource.data.status == 'open';
-
-      // Authenticated users can update tasks (client-side guards for authorization)
+      
+      allow create: if request.auth != null 
+                     && request.resource.data.posterId == request.auth.uid;
+      
       allow update: if request.auth != null;
-
-      // No one can delete tasks
-      allow delete: if false;
+      
+      allow delete: if isAdmin();
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/user_profile.dart';
 import '../models/task_model.dart';
 
@@ -276,20 +277,23 @@ class FirestoreService {
       
       // Đơn giản hóa query: Lấy TẤT CẢ nhiệm vụ hoàn thành của người dùng, lọc cục bộ.
       // Tránh lỗi "Int64 accessor" với Timestamp queries trên web.
-      final query = await _firestore
+      // Query đơn giản để tránh lỗi "Unexpected state" của SDK trên Web
+      // Chúng ta sẽ lấy hết nhiệm vụ của heroId hiện tại có trạng thái 'completed',
+      // sau đó lọc mốc thời gian 7 ngày ở phía Client.
+      final tasksQuery = await _firestore
           .collection('tasks')
           .where('heroId', isEqualTo: currentUserId)
           .where('status', isEqualTo: 'completed')
-          .get();
+          .get(kIsWeb ? const GetOptions(source: Source.server) : const GetOptions());
 
-      print('[Firestore] Tìm thấy ${query.docs.length} nhiệm vụ hoàn thành. Đang lọc...');
+      print('[Firestore] Tìm thấy ${tasksQuery.docs.length} nhiệm vụ hoàn thành. Đang lọc...');
       
-      final tasks = query.docs
+      final tasks = tasksQuery.docs
           .map((doc) {
             try {
               return _taskFromFirestore(doc);
             } catch (e) {
-              print('[Firestore] Lỗi khi map nhiệm vụ ${doc.id}: $e');
+              print('[Firestore] Lỗi xử lý nhiệm vụ ${doc.id}: $e');
               return null;
             }
           })
@@ -501,5 +505,69 @@ class FirestoreService {
           ? (data['completedAt'] as Timestamp).toDate()
           : null,
     );
+  }
+
+  // ===== PHƯƠNG THỨC ADMIN =====
+
+  /// Stream danh sách TẤT CẢ người dùng (chỉ dành cho admin)
+  Stream<List<UserProfile>> getAllUsersStream() {
+    return _firestore
+        .collection('users')
+        .orderBy('lastActive', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((doc) {
+              try {
+                return UserProfile.fromFirestore(doc);
+              } catch (e) {
+                print('[Firestore] Lỗi khi map user ${doc.id}: $e');
+                return null;
+              }
+            })
+            .whereType<UserProfile>()
+            .toList())
+        .handleError((e) {
+      print('[Firestore] Lỗi trong getAllUsersStream: $e');
+      return <UserProfile>[];
+    });
+  }
+
+  /// Thống kê tổng quan cho admin dashboard
+  Future<Map<String, dynamic>> getAdminStats() async {
+    try {
+      // Lấy tất cả tasks
+      final tasksSnap = await _firestore.collection('tasks').get();
+      final tasks = tasksSnap.docs.map((doc) {
+        try { return _taskFromFirestore(doc); } catch (_) { return null; }
+      }).whereType<HeroTask>().toList();
+
+      // Lấy tất cả users
+      final usersSnap = await _firestore.collection('users').get();
+
+      final totalTasks = tasks.length;
+      final completedTasks = tasks.where((t) => t.status == TaskStatus.completed).toList();
+      final openTasks = tasks.where((t) => t.status == TaskStatus.open).length;
+
+      // Tổng tiền giao dịch (các task đã hoàn thành)
+      final totalVolume = completedTasks.fold<double>(0, (sum, t) => sum + t.compensation);
+      // Phí platform 5%
+      final platformRevenue = totalVolume * 0.05;
+
+      return {
+        'totalUsers': usersSnap.docs.length,
+        'totalTasks': totalTasks,
+        'completedTasks': completedTasks.length,
+        'openTasks': openTasks,
+        'totalVolume': totalVolume,
+        'platformRevenue': platformRevenue,
+        'recentCompleted': completedTasks
+            .where((t) => t.completedAt != null)
+            .toList()
+          ..sort((a, b) => b.completedAt!.compareTo(a.completedAt!)),
+      };
+    } catch (e) {
+      print('[Firestore] Lỗi getAdminStats: $e');
+      return {};
+    }
   }
 }

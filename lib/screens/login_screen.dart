@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       
                       // Nội dung tab
                       SizedBox(
-                        height: 350,
+                        height: 380,
                         child: TabBarView(
                           controller: _tabController,
                           children: [
@@ -362,8 +362,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                                   // Link đăng ký
                                   Center(
-                                    child: ShadButton.ghost(
-                                      onPressed: () {
+                                    child: GestureDetector(
+                                      onTap: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
@@ -371,10 +371,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                           ),
                                         );
                                       },
-                                      child: Text(
-                                        'Chưa có tài khoản? Đăng ký',
-                                        style: TextStyle(
-                                          color: theme.colorScheme.primary,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        child: Text(
+                                          'Chưa có tài khoản?\nĐăng ký',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -435,7 +440,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                                 ),
                                               ),
                                               const SizedBox(width: 12),
-                                              const Text('Đăng nhập với Google'),
+                                              const Text('Đăng nhập'),
                                             ],
                                           ),
                                   ),

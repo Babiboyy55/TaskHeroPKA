@@ -348,16 +348,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Link đăng nhập
                         Center(
-                          child: ShadButton.ghost(
-                            onPressed: () {
+                          child: GestureDetector(
+                            onTap: () {
                               Navigator.pop(context);
                             },
-                            child: Text(
-                              'Đã có tài khoản? Đăng nhập',
-                              style: TextStyle(
-                                color: theme.colorScheme.primary,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                'Đã có tài khoản?\nĐăng nhập',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ),
