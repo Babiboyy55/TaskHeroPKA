@@ -162,6 +162,7 @@ class FirestoreService {
         'createdAt': Timestamp.now(),
         'acceptedAt': null,
         'completedAt': null,
+        'isPaid': false,
       };
 
       final docRef = await _firestore.collection('tasks').add(taskData);
@@ -476,6 +477,33 @@ class FirestoreService {
     print('[Firestore] Nhiệm vụ $taskId hoàn thành hoàn toàn.');
   }
 
+  /// Lấy danh sách nhiệm vụ CHỜ THANH TOÁN (do mình đăng, đã hoàn thành, nhưng chưa trả tiền công)
+  Stream<List<HeroTask>> getUnpaidTasks() {
+    if (currentUserId == null) return Stream.value([]);
+
+    return _firestore
+        .collection('tasks')
+        .where('posterId', isEqualTo: currentUserId)
+        .where('status', isEqualTo: TaskStatus.completed.name)
+        .where('isPaid', isEqualTo: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => _taskFromFirestore(doc))
+            .toList())
+        .handleError((e) {
+          print('[Firestore] Lỗi luồng nhiệm vụ nhắc nợ: $e');
+          return <HeroTask>[];
+        });
+  }
+
+  /// Đánh dấu là đã gặp mặt trả tiền hoặc chuyển khoản xong
+  Future<void> markTaskAsPaid(String taskId) async {
+    await _firestore.collection('tasks').doc(taskId).update({
+      'isPaid': true,
+    });
+    print('[Firestore] Đã dập cờ thanh toán cho nhiệm vụ $taskId');
+  }
+
   /// Hàm chuyển đổi Firestore doc thành HeroTask
   HeroTask _taskFromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -526,6 +554,7 @@ class FirestoreService {
       completedAt: data['completedAt'] != null && data['completedAt'] is Timestamp
           ? (data['completedAt'] as Timestamp).toDate()
           : null,
+      isPaid: data['isPaid'] ?? false,
     );
   }
 

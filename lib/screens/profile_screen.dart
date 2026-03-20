@@ -377,6 +377,10 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
                 const SizedBox(height: 32),
 
+                // Khu vực Nhắc nhở thanh toán (Pending Payments)
+                _buildPendingPaymentsSection(theme),
+                const SizedBox(height: 32),
+
                 // Tab nhiệm vụ của tôi
                 Container(
                   decoration: BoxDecoration(
@@ -657,6 +661,118 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             );
           },
         );
+      },
+    );
+  }
+
+  Widget _buildPendingPaymentsSection(ShadThemeData theme) {
+    return StreamBuilder<List<HeroTask>>(
+      stream: _firestoreService.getUnpaidTasks(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink(); // Ẩn khi không có nợ
+        }
+
+        final unpaidTasks = snapshot.data!;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.red.shade50.withOpacity(0.5),
+            border: Border.all(color: Colors.red.shade200),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(LucideIcons.bellRing, color: Colors.red, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Cần thanh toán (${unpaidTasks.length})',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.red.shade700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Các nhiệm vụ dưới đây đã được Hero hoàn thành. Bạn vui lòng trả tiền công, sau đó bấm Xác nhận để chốt sổ nhé!',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.red.shade900,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...unpaidTasks.map((task) => Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade100),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Text(task.category.emoji, style: const TextStyle(fontSize: 24)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.title,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Hero: ${task.heroName}',
+                            style: TextStyle(fontSize: 12, color: theme.colorScheme.mutedForeground),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          formatVND(task.compensation),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.green600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ShadButton(
+                          onPressed: () {
+                            _firestoreService.markTaskAsPaid(task.id!);
+                          },
+                          size: ShadButtonSize.sm,
+                          backgroundColor: AppColors.green500,
+                          child: const Text('Đã thanh toán', style: TextStyle(fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ],
+          ),
+        ).animate().slideY(begin: 0.1, duration: 400.ms).fadeIn();
       },
     );
   }

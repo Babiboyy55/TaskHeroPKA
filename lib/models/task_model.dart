@@ -61,6 +61,7 @@ class HeroTask {
   final DateTime createdAt;
   final DateTime? acceptedAt;
   final DateTime? completedAt;
+  final bool isPaid;
 
   const HeroTask({
     this.id,
@@ -84,6 +85,7 @@ class HeroTask {
     required this.createdAt,
     this.acceptedAt,
     this.completedAt,
+    this.isPaid = false,
   });
 
   double get platformFee => compensation * 0.05;
@@ -97,7 +99,7 @@ class HeroTask {
     return '${diff.inDays} ngày trước';
   }
 
-  HeroTask copyWith({TaskStatus? status, String? heroId, String? heroName, bool? pickedUp, bool? delivered, DateTime? acceptedAt, DateTime? completedAt}) {
+  HeroTask copyWith({TaskStatus? status, String? heroId, String? heroName, bool? pickedUp, bool? delivered, DateTime? acceptedAt, DateTime? completedAt, bool? isPaid}) {
     return HeroTask(
       id: id,
       title: title,
@@ -120,6 +122,7 @@ class HeroTask {
       createdAt: createdAt,
       acceptedAt: acceptedAt ?? this.acceptedAt,
       completedAt: completedAt ?? this.completedAt,
+      isPaid: isPaid ?? this.isPaid,
     );
   }
 }
