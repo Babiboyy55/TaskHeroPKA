@@ -7,14 +7,17 @@
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Mở ứng dụng\nNhập email & mật khẩu]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Mở ứng dụng\nNhập email & mật khẩu]
     A --> D1{Thông tin\nhợp lệ?}
     D1 -- Sai --> A
     D1 -- Đúng --> D2{Là Admin?}
     D2 -- Sai --> B[Vào màn hình User]
     D2 -- Đúng --> C[Vào Admin Dashboard]
-    B --> E((●))
+    B --> E((●)):::blackNode
     C --> E
 ```
 
@@ -25,12 +28,15 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Mở tab Người dùng]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Mở tab Người dùng]
     A --> B[Tải danh sách từ Firestore]
     B --> D1{Tải\nthành công?}
     D1 -- Sai --> X[Hiện thông báo lỗi]
-    X --> E((●))
+    X --> E((●)):::blackNode
     D1 -- Đúng --> C[Hiển thị danh sách]
     C --> D2{Nhập\ntừ khóa?}
     D2 -- Sai --> E
@@ -46,14 +52,17 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Chọn người dùng từ danh sách]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Chọn người dùng từ danh sách]
     A --> B[Truy vấn Firestore]
     B --> C[Hiển thị màn hình chi tiết]
     C --> D[Họ tên · Mã ngành · Năm học]
     C --> E[Rating · Thu nhập · Chi tiêu]
     C --> F[Số task đã đăng & hoàn thành]
-    D & E & F --> Z((●))
+    D & E & F --> Z((●)):::blackNode
 ```
 
 ---
@@ -63,8 +72,11 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Mở tab Thu nhập]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Mở tab Thu nhập]
     A --> B[Gọi getAdminStats]
     B --> D1{Dữ liệu\ntrả về?}
     D1 -- Sai --> B
@@ -73,7 +85,7 @@ flowchart TD
     C --> H[Tổng nhiệm vụ]
     C --> I[Đã hoàn thành]
     C --> J[Đang mở]
-    G & H & I & J --> Z((●))
+    G & H & I & J --> Z((●)):::blackNode
 ```
 
 ---
@@ -83,14 +95,17 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Tải thống kê Admin]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Tải thống kê Admin]
     A --> B[Tổng giao dịch tất cả task hoàn thành]
     B --> C[Tính phí 5%\nplatformRevenue = tổng × 5%]
     C --> D[Hiển thị thẻ doanh thu]
     D --> E[Tổng giao dịch VNĐ]
     D --> F[Doanh thu platform VNĐ]
-    E & F --> Z((●))
+    E & F --> Z((●)):::blackNode
 ```
 
 ---
@@ -100,13 +115,16 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Gọi getLeaderboardData]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Gọi getLeaderboardData]
     A --> B[Top users theo totalEarned]
     A --> C[Top users theo totalSpent]
     B --> D[Cột trái: Chăm chỉ 💰]
     C --> E[Cột phải: VIP Đại gia 💎]
-    D & E --> Z((●))
+    D & E --> Z((●)):::blackNode
 ```
 
 ---
@@ -116,13 +134,16 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Lấy task có status = completed]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Lấy task có status = completed]
     A --> D1{Có giao\ndịch không?}
     D1 -- Sai --> B[Hiện: Chưa có giao dịch]
     D1 -- Đúng --> C[Hiển thị tối đa 20 giao dịch gần nhất]
     C --> D[Tiêu đề · Danh mục · Thù lao · Ngày]
-    B & D --> Z((●))
+    B & D --> Z((●)):::blackNode
 ```
 
 ---
@@ -132,8 +153,11 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Nhập email & mật khẩu]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Nhập email & mật khẩu]
     A --> D1{Email\nhợp lệ?}
     D1 -- Sai --> A
     D1 -- Đúng --> D2{Mật khẩu\nđủ mạnh?}
@@ -143,7 +167,7 @@ flowchart TD
     D3 -- Sai --> C[Hiển thị lỗi Firebase]
     D3 -- Đúng --> D[Tạo hồ sơ Firestore]
     D --> E[Vào màn hình Home]
-    C & E --> Z((●))
+    C & E --> Z((●)):::blackNode
 ```
 
 ---
@@ -153,15 +177,18 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> D0{Thao tác?}
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> D0{Thao tác?}
     D0 -- Đăng nhập --> A[Nhập email & mật khẩu]
     A --> D1{Hợp lệ?}
     D1 -- Sai --> A
     D1 -- Đúng --> B[Vào màn hình Home]
     D0 -- Đăng xuất --> C[Gọi authService.signOut]
     C --> D[Quay về màn hình Login]
-    B & D --> Z((●))
+    B & D --> Z((●)):::blackNode
 ```
 
 ---
@@ -171,15 +198,18 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Nhập địa chỉ email]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Nhập địa chỉ email]
     A --> D1{Email\ntồn tại?}
     D1 -- Sai --> X[Thông báo: Email không tồn tại]
     X --> A
     D1 -- Đúng --> B[Firebase gửi email đặt lại]
     B --> C[User nhấn link trong email]
     C --> D[Nhập mật khẩu mới]
-    D --> Z((●))
+    D --> Z((●)):::blackNode
 ```
 
 ---
@@ -189,12 +219,15 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Nhấn vào tên mã ngành ✏️]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Nhấn vào tên mã ngành ✏️]
     A --> B[Hộp thoại Chỉnh sửa hồ sơ]
     B --> C[Chọn Mã ngành & Năm học]
     C --> D1{Nhấn Lưu?}
-    D1 -- Hủy --> Z((●))
+    D1 -- Hủy --> Z((●)):::blackNode
     D1 -- Lưu --> E[updateUserProfile Firestore]
     E --> F[Hồ sơ tự cập nhật]
     F --> Z
@@ -207,8 +240,11 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Mở màn hình Hồ sơ]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Mở màn hình Hồ sơ]
     A --> B[Stream getUserProfileStream]
     B --> D1{Dữ liệu\ncó sẵn?}
     D1 -- Sai --> A
@@ -217,7 +253,7 @@ flowchart TD
     C --> E[Thu nhập tháng này]
     C --> F[Task đã làm]
     C --> G[Task đã đăng]
-    D & E & F & G --> Z((●))
+    D & E & F & G --> Z((●)):::blackNode
 ```
 
 ---
@@ -227,8 +263,11 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Chọn chế độ Giọng nói 🎙️]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Chọn chế độ Giọng nói 🎙️]
     A --> B[Giữ nút Ghi âm & mô tả việc cần làm]
     B --> C[Nhả nút – Gửi audio đến Deepgram]
     C --> D1{Chuyển đổi\nthành công?}
@@ -241,7 +280,7 @@ flowchart TD
     D3 -- Sai --> G[Hủy hoặc sửa lại]
     D3 -- Đúng --> H[Lưu lên Firestore]
     H --> I[Thông báo thành công ✅]
-    X & G & I --> Z((●))
+    X & G & I --> Z((●)):::blackNode
 ```
 
 ---
@@ -251,8 +290,11 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Chọn chế độ Thủ công ✏️]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Chọn chế độ Thủ công ✏️]
     A --> B[Nhập mô tả nhiệm vụ]
     B --> C[Chọn danh mục & địa điểm]
     C --> D[Kéo chọn mức thù lao]
@@ -263,7 +305,7 @@ flowchart TD
     E --> D2{Lưu\nthành công?}
     D2 -- Sai --> Y[Hiển thị lỗi]
     D2 -- Đúng --> F[Thông báo: Đã đăng!\nReset form]
-    Y & F --> Z((●))
+    Y & F --> Z((●)):::blackNode
 ```
 
 ---
@@ -273,15 +315,18 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Mở tab Nhiệm vụ tôi đăng]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Mở tab Nhiệm vụ tôi đăng]
     A --> B[Stream getMyPostedTasks]
     B --> D1{Có\nnhiệm vụ?}
     D1 -- Sai --> C[Hiện: Chưa có nhiệm vụ 📭]
     D1 -- Đúng --> D[Danh sách card: tiêu đề · trạng thái · thù lao]
     D --> D2{Nhấn vào card?}
     D2 -- Có --> E[Xem chi tiết nhiệm vụ]
-    C & D2 & E --> Z((●))
+    C & D2 & E --> Z((●)):::blackNode
 ```
 
 ---
@@ -291,8 +336,11 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Stream phát hiện task chưa thanh toán]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Stream phát hiện task chưa thanh toán]
     A --> B[Hiển thị cảnh báo đỏ 🔔 Cần thanh toán]
     B --> C[Poster thanh toán trực tiếp cho Hero ngoài app]
     C --> D[Nhấn Đã thanh toán trong app]
@@ -302,7 +350,7 @@ flowchart TD
     D1 -- Đúng --> G[isPaid = true]
     G --> H[Cộng thu nhập vào hồ sơ Hero]
     H --> I[Ẩn cảnh báo]
-    F & I --> Z((●))
+    F & I --> Z((●)):::blackNode
 ```
 
 ---
@@ -312,15 +360,18 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Mở màn hình Duyệt nhiệm vụ]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Mở màn hình Duyệt nhiệm vụ]
     A --> B[Stream getAllTasks · lọc status = open]
     B --> D1{Có\nnhiệm vụ?}
     D1 -- Sai --> C[Hiện: Không có nhiệm vụ 🔍]
     D1 -- Đúng --> D2{Thiết bị\nlà mobile?}
     D2 -- Có --> E[Hiển thị dạng Card List]
     D2 -- Không --> F[Hiển thị dạng Table]
-    C & E & F --> Z((●))
+    C & E & F --> Z((●)):::blackNode
 ```
 
 ---
@@ -330,14 +381,17 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Nhập từ khóa vào ô tìm kiếm]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Nhập từ khóa vào ô tìm kiếm]
     A --> B[Lọc theo tiêu đề & mô tả nhiệm vụ]
     B --> D1{Có kết\nquả không?}
     D1 -- Sai --> C[Hiện: Không tìm thấy kết quả]
     D1 -- Đúng --> D[Cập nhật danh sách theo thời gian thực]
     D --> E[Hiển thị số kết quả tìm được]
-    C & E --> Z((●))
+    C & E --> Z((●)):::blackNode
 ```
 
 ---
@@ -347,8 +401,11 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> D1{Chọn\ndanh mục}
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> D1{Chọn\ndanh mục}
     D1 -- Tất cả --> A[Hiện toàn bộ]
     D1 -- Đồ ăn --> B[food]
     D1 -- Học tập --> C[academic]
@@ -357,7 +414,7 @@ flowchart TD
     D1 -- Sự kiện --> F[social]
     D1 -- Chợ --> G[marketplace]
     A & B & C & D & E & F & G --> H[Cập nhật danh sách hiển thị]
-    H --> Z((●))
+    H --> Z((●)):::blackNode
 ```
 
 ---
@@ -367,10 +424,13 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Chọn nhiệm vụ & xem chi tiết]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Chọn nhiệm vụ & xem chi tiết]
     A --> D1{Quyết định\nnhận?}
-    D1 -- Không --> Z((●))
+    D1 -- Không --> Z((●)):::blackNode
     D1 -- Có --> B[Nhấn nút Nhận]
     B --> C[acceptTask Firestore]
     C --> D2{Thành công?}
@@ -387,15 +447,18 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Mở tab Nhiệm vụ tôi nhận]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Mở tab Nhiệm vụ tôi nhận]
     A --> B[Stream getMyAcceptedTasks]
     B --> D1{Có\nnhiệm vụ?}
     D1 -- Sai --> C[Hiện: Chưa có nhiệm vụ 📭]
     D1 -- Đúng --> D[Danh sách: tiêu đề · trạng thái · thù lao]
     D --> D2{Nhấn card?}
     D2 -- Có --> E[Xem chi tiết nhiệm vụ]
-    C & D2 & E --> Z((●))
+    C & D2 & E --> Z((●)):::blackNode
 ```
 
 ---
@@ -405,15 +468,18 @@ flowchart TD
 ---
 title: Hệ Thống
 ---
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'primaryTextColor':'#000000', 'lineColor':'#000000', 'edgeLabelBackground':'#ffffff', 'tertiaryColor':'#ffffff'}}}%%
 flowchart TD
-    S(( )) --> A[Mở màn hình Hồ sơ]
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef blackNode fill:#000000,stroke:#000000,stroke-width:1px,color:#ffffff;
+    S(( )):::blackNode --> A[Mở màn hình Hồ sơ]
     A --> B[Stream getUserProfileStream]
     B --> C[Tổng thu nhập & Thu nhập tháng này]
     C --> D1{Có task\nchờ thanh toán?}
     D1 -- Sai --> E[Không hiển thị cảnh báo]
     D1 -- Đúng --> F[Danh sách task chờ Poster xác nhận]
     F --> G[Tên task · Tên Poster · Số tiền · Trạng thái]
-    E & G --> Z((●))
+    E & G --> Z((●)):::blackNode
 ```
 
 ---
