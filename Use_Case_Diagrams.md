@@ -1,6 +1,61 @@
 # SƠ ĐỒ USE CASE CHI TIẾT – HỆ THỐNG TASKHERO
 
-> Các sơ đồ dưới đây mô phỏng chuẩn Use Case diagram của UML, với hệ thống mũi tên liên kết `include` (chức năng bắt buộc/gộp), `extend` (chức năng mở rộng) và khung `Hệ Thống` bao quát, được chia thành 4 nhóm tương ứng với 4 nhóm Actor chính, tóm gọn 22 Use Case.
+> Các sơ đồ dưới đây mô phỏng chuẩn Use Case diagram của UML, với hệ thống mũi tên liên kết `include` (chức năng bắt buộc/gộp), `extend` (chức năng mở rộng) và khung `Hệ Thống` bao quát, được chia thành phần Tổng quát và 4 nhóm cụ thể tương ứng với 4 nhóm Actor chính, tóm gọn 22 Use Case.
+
+---
+
+## SƠ ĐỒ USE CASE TỔNG QUÁT Toàn Hệ Thống
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#ffffff', 'primaryBorderColor':'#000000', 'lineColor':'#000000'}}}%%
+flowchart LR
+    %% Định nghĩa các tác nhân
+    Admin(("👤<br/>Admin")):::actor
+    User(("👤<br/>User<br/>(Chung)")):::actor
+    Poster(("👤<br/>Poster<br/>(Đăng việc)")):::actor
+    Hero(("👤<br/>Hero<br/>(Nhận việc)")):::actor
+    
+    %% Mối liên hệ tổng quát giữa các đối tượng User
+    User -. "<br/>Mở rộng thành" .-> Poster
+    User -. "<br/>Mở rộng thành" .-> Hero
+    
+    %% Ranh giới hệ thống tổng
+    subgraph Sys ["Hệ Thống TaskHero (Tổng Quan)"]
+        direction TB
+        
+        %% Admin UCs
+        UC_A1(["Quản lý hệ thống<br/>& nền tảng"]):::mainUC
+        UC_A2(["Quản lý<br/>người dùng"]):::mainUC
+        
+        %% User UCs
+        UC_U1(["Quản lý<br/>tài khoản & hồ sơ"]):::mainUC
+        
+        %% Poster UCs
+        UC_P1(["Quản lý đăng tải<br/>& nhiệm vụ"]):::mainUC
+        UC_P2(["Xác nhận<br/>thanh toán"]):::mainUC
+        
+        %% Hero UCs
+        UC_H1(["Tìm lọc và<br/>Nhận nhiệm vụ"]):::mainUC
+        UC_H2(["Theo dõi công việc<br/>đang thực hiện"]):::mainUC
+    end
+    
+    %% Liên kết Actor và Use Case
+    Admin --- UC_A1
+    Admin --- UC_A2
+    
+    User --- UC_U1
+    
+    Poster --- UC_P1
+    Poster --- UC_P2
+    
+    Hero --- UC_H1
+    Hero --- UC_H2
+    
+    %% Styling
+    classDef actor fill:transparent,stroke:none,color:#000000;
+    classDef mainUC fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    style Sys fill:transparent,stroke:#000000,stroke-width:1px,rx:20,ry:20
+```
 
 ---
 
